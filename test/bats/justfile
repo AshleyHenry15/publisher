@@ -47,37 +47,6 @@ run *args:
 
     npm run {{ args }}
 
-
-# Executes bats deploy tests
-test-contract:
-    #!/usr/bin/env bash
-    set -eou pipefail
-    {{ _with_debug }}
-
-    exe=$(just ../../executable-path)
-
-    if [ ! -f $exe ]; then
-        echo "error: Missing executable $exe. Run \`just build\`." 1>&2
-        exit 1
-    fi
-    pip install -r ../setup/requirements.txt
-    export CONNECT_SERVER="$(python ../setup/connect_setup.py)"
-    export CONNECT_API_KEY="$(python ../setup/gen_apikey.py 'admin')"
-    echo "CONTENT: ${CONTENT}"
-    EXE=$exe npm run accounts
-    if [[ "${CONTENT}" == "all" ]]; then
-        content_list=$(python ../deploy_helper.py)
-        for i in ${content_list}
-        do
-            export CONTENT=${i}
-            EXE=$exe npm run deploy
-        done
-    else
-        EXE=$exe npm run deploy
-    fi
-    
-    
-
 # Executes bats local tests
 test:
     #!/usr/bin/env bash
@@ -92,3 +61,64 @@ test:
     fi
     
     EXE=$exe npm run cli
+
+test-accounts:
+    #!/usr/bin/env bash
+    set -eou pipefail
+    {{ _with_debug }}
+    
+    exe=$(just ../../executable-path)
+
+    if [ ! -f $exe ]; then
+        echo "error: Missing executable $exe. Run \`just build\`." 1>&2
+        exit 1
+    fi
+
+    pip install -r ../setup/requirements.txt
+    export CONNECT_SERVER="$(python ../setup/connect_setup.py)"
+    export CONNECT_API_KEY="$(python ../setup/gen_apikey.py 'admin')"
+    echo "CONTENT: ${CONTENT}"
+    EXE=$exe npm run accounts
+
+# Executes bats deploy tests
+test-contract:
+    #!/usr/bin/env bash
+    set -eou pipefail
+    {{ _with_debug }}
+
+    exe=$(just ../../executable-path)
+
+    if [ ! -f $exe ]; then
+        echo "error: Missing executable $exe. Run \`just build\`." 1>&2
+        exit 1
+    fi
+    just test-accounts
+    just test-deploy
+    
+
+test-deploy:
+ #!/usr/bin/env bash
+    set -eou pipefail
+    {{ _with_debug }}
+
+    exe=$(just ../../executable-path)
+
+    if [ ! -f $exe ]; then
+        echo "error: Missing executable $exe. Run \`just build\`." 1>&2
+        exit 1
+    fi
+    pip install -r ../setup/requirements.txt
+    export CONNECT_SERVER="$(python ../setup/connect_setup.py)"
+    export CONNECT_API_KEY="$(python ../setup/gen_apikey.py 'admin')"
+
+    if [[ "${CONTENT}" == "all" ]]; then
+        content_list=$(python ../deploy_helper.py)
+        for i in ${content_list}
+        do
+            export CONTENT=${i}
+            EXE=$exe npm run deploy
+        done
+    else
+        EXE=$exe npm run deploy
+    fi
+
