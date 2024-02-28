@@ -36,7 +36,6 @@ jobs:
         with:
           repository: rstudio/connect-content
           path: 'test/content'
-          ref: 'kg-publisher'
           sparse-checkout: bundles
           sparse-checkout-cone-mode: false
           token: ${{ secrets.CONNECT_PAT }}
@@ -72,9 +71,3 @@ jobs:
           path: test/cy/cypress/screenshots
           if-no-files-found: ignore
           retention-days: 1
-
-      - name: Setup tmate session
-        if: ${{ failure() }}
-        uses: mxschmitt/action-tmate@v3
-        with:
-          limit-access-to-actor: true
