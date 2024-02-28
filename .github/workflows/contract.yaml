@@ -72,3 +72,9 @@ jobs:
           path: test/cy/cypress/screenshots
           if-no-files-found: ignore
           retention-days: 1
+
+      - name: Setup tmate session
+        if: ${{ failure() }}
+        uses: mxschmitt/action-tmate@v3
+        with:
+          limit-access-to-actor: true
