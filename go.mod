@@ -2,7 +2,6 @@ module github.com/rstudio/connect-client
 
 go 1.22
 
-# toolchain go1.22.0
 
 require (
 	github.com/PuerkitoBio/purell v1.2.1
