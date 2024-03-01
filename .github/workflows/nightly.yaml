@@ -5,6 +5,7 @@ on:
   workflow_dispatch:
 
 jobs:
+
   agent:
     uses: ./.github/workflows/agent.yaml
   web:
@@ -12,6 +13,10 @@ jobs:
   build:
     uses: ./.github/workflows/build.yaml
   contract-deps:
+    strategy:
+      fail-fast: false
+      matrix:
+        CONNECT_VERSION: [2022.08.0, 2024.02.0]
     secrets: inherit
     uses: ./.github/workflows/contract-deps.yaml
   nightly:
