@@ -20,7 +20,6 @@ import {
 
 enum LogStageStatus {
   notStarted,
-  neverStarted,
   inProgress,
   completed,
   failed
@@ -124,11 +123,6 @@ export class LogsTreeDataProvider implements TreeDataProvider<LogsTreeItem> {
     
     stream.register('publish/failure', (_: EventStreamMessage) => {
       this.publishingStage.status = LogStageStatus.failed;
-      this.stages.forEach((stage) => {
-        if (stage.status === LogStageStatus.notStarted) {
-          stage.status = LogStageStatus.neverStarted;
-        }
-      });
       this.refresh();
     });
   }
@@ -443,10 +437,7 @@ export class LogsTreeStageItem extends TreeItem {
   setIcon(status: LogStageStatus) {
     switch (status) {
       case LogStageStatus.notStarted:
-        this.iconPath = new ThemeIcon('circle-large-outline');
-        break;
-      case LogStageStatus.neverStarted:
-        this.iconPath = new ThemeIcon('circle-slash');
+        this.iconPath = new ThemeIcon('circle-outline');
         break;
       case LogStageStatus.inProgress:
         this.iconPath = new ThemeIcon('loading~spin');
