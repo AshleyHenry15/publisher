@@ -14,15 +14,16 @@ IGNORE_SUBDIR_DBL_WILDCARD="tempdir/subdir/subdirdbl.wild"
 
 setup_file() {
     # make subdirectories and files for positignore testing
-    mktemp ${FULL_PATH}/tempdir -d
-    mktemp ${FULL_PATH}/tempdir/subdir -d
-    mktemp ${FULL_PATH}/${IGNORE_ROOT_FILE}
-    mktemp ${FULL_PATH}/${IGNORE_WILDCARD}
-    mktemp ${FULL_PATH}/${IGNORE_SUBDIR_FILE}
-    mktemp ${FULL_PATH}/${IGNORE_SUBDIR_WILDCARD}
-    mktemp ${FULL_PATH}/${IGNORE_SUBDIR_DBL_WILDCARD}
+    mkdir ${FULL_PATH}/tempdir
+    mkdir ${FULL_PATH}/tempdir/subdir
+    touch ${FULL_PATH}/${IGNORE_ROOT_FILE}
+    touch ${FULL_PATH}/${IGNORE_WILDCARD}
+    touch ${FULL_PATH}/${IGNORE_SUBDIR_FILE}
+    touch ${FULL_PATH}/${IGNORE_SUBDIR_WILDCARD}
+    touch ${FULL_PATH}/${IGNORE_SUBDIR_DBL_WILDCARD}
 
-    POSIT_IGNORE=$(mktemp ${FULL_PATH}/.positignore)
+    touch ${FULL_PATH}/.positignore
+    POSIT_IGNORE=${FULL_PATH}/.positignore
     # add each case to .positignore
     echo ${IGNORE_ROOT_FILE} >> ${POSIT_IGNORE}
     echo ${IGNORE_SUBDIR_FILE} >> ${POSIT_IGNORE}
