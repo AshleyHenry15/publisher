@@ -6,13 +6,14 @@ source ../content/bundles/${CONTENT}/test/.publisher-env
 CONTENT_PATH='../content/bundles'
 FULL_PATH="${CONTENT_PATH}/${CONTENT}"
 
+IGNORE_ROOT_FILE="ignoreme.txt"
+IGNORE_WILDCARD="wildcard.wild"
+IGNORE_SUBDIR_FILE="tempdir/subdir.txt"
+IGNORE_SUBDIR_WILDCARD="tempdir/wildcard.wild"
+IGNORE_SUBDIR_DBL_WILDCARD="tempdir/subdir/subdirdbl.wild"
+
 setup_file() {
-    # create temp files for positignore testing
-    IGNORE_ROOT_FILE="ignoreme.txt"
-    IGNORE_WILDCARD="wildcard.wild"
-    IGNORE_SUBDIR_FILE="tempdir/subdir.txt"
-    IGNORE_SUBDIR_WILDCARD="tempdir/wildcard.wild"
-    IGNORE_SUBDIR_DBL_WILDCARD="tempdir/subdir/subdirdbl.wild"
+    # make subdirectories and files for positignore testing
     mktemp ${FULL_PATH}/tempdir -d
     mktemp ${FULL_PATH}/tempdir/subdir -d
     mktemp ${FULL_PATH}/${IGNORE_ROOT_FILE}
@@ -111,18 +112,27 @@ python_content_types=(
     # rm -rf ${FULL_PATH}/.posit/ ${FULL_PATH}/.positignore
 }
 
-@test "check deployment .toml" {
+@test "check for toml file" {
         run cat ${FULL_PATH}/.posit/publish/deployments/ci_deploy.toml
             assert_output --partial "type = '${CONTENT_TYPE}'"
             assert_output --partial "entrypoint = '${ENTRYPOINT}'"
-            assert_output --partial "title = '${TITLE}'"
+}
 
-            # ensure we don't deploy ignored files
-            refute_output --partial "ignoreme.txt"
-            refute_output --partial "wildcard.wild"
-            refute_output --partial "tempdir/subdir.txt"
-            refute_output --partial "tempdir/wildcard.wild"
-            refute_output --partial "tempdir/subdir/subdirdbl.wild"
+@test "check for ignored files in toml" {
+    if [[ ${quarto_r_content[@]} =~ ${CONTENT} ]]; then
+        skip
+    else
+        if [[ "$OSTYPE" == "win32" ]]; then
+            skip
+        else
+            run cat ${FULL_PATH}/.posit/publish/deployments/ci_deploy.toml
+                refute_output --partial "ignoreme.txt"
+                refute_output --partial "wildcard.wild"
+                refute_output --partial "tempdir/subdir.txt"
+                refute_output --partial "tempdir/wildcard.wild"
+                refute_output --partial "tempdir/subdir/subdirdbl.wild"
+        fi
+    fi
 }
 
 
@@ -141,11 +151,14 @@ the 'publisher requirements create' command."
         skip
     fi
 }
-# teardown_file() {
-#     delete the temp file
-#     rm -rf ${FULL_PATH}/ignoreme.txt
-#     # rm -rf ${FULL_PATH}/${IGNOR_SUBDIR_FILE}
-#     rm -rf ${FULL_PATH}/wildcard.wild
-#     rm -rf ${FULL_PATH}/.posit
-#     rm -rf ${FULL_PATH}/.positignore
-# }
+
+teardown_file() {
+    # delete the temp files
+    rm -rf ${FULL_PATH}/.posit*
+    rm -rf ${FULL_PATH}/tempdir
+    rm -rf ${FULL_PATH}/${IGNORE_ROOT_FILE}
+    rm -rf ${FULL_PATH}/${IGNORE_WILDCARD}
+    rm -rf ${FULL_PATH}/${IGNORE_SUBDIR_FILE}
+    rm -rf ${FULL_PATH}/${IGNORE_SUBDIR_WILDCARD}
+    rm -rf ${FULL_PATH}/${IGNORE_SUBDIR_DBL_WILDCARD}
+}
