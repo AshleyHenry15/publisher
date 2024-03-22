@@ -127,7 +127,7 @@ python_content_types=(
     if [[ ${quarto_r_content[@]} =~ ${CONTENT} ]]; then
         skip
     else
-        if [[ "$OSTYPE" == "win32" ]]; then
+        if [[ ${RUNNER_OS} =~ "Windows" ]]; then
             skip
         else
             run cat ${FULL_PATH}/.posit/publish/deployments/ci_deploy.toml
