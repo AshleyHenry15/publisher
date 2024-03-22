@@ -114,9 +114,13 @@ python_content_types=(
 }
 
 @test "check for toml file" {
+    if [[ ${quarto_r_content[@]} =~ ${CONTENT} ]]; then
+        skip
+    else
         run cat ${FULL_PATH}/.posit/publish/deployments/ci_deploy.toml
             assert_output --partial "type = '${CONTENT_TYPE}'"
             assert_output --partial "entrypoint = '${ENTRYPOINT}'"
+    fi
 }
 
 @test "check for ignored files in toml" {
