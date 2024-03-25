@@ -13,6 +13,7 @@ import { FilesTreeDataProvider } from "./views/files";
 import { RequirementsTreeDataProvider } from "./views/requirements";
 import { CredentialsTreeDataProvider } from "./views/credentials";
 import { HelpAndFeedbackTreeDataProvider } from "./views/helpAndFeedback";
+import { TopLevelTreeProvider } from "./views/toplevel";
 import { LogsTreeDataProvider } from "./views/logs";
 import { EventStream } from "./events";
 
@@ -88,15 +89,19 @@ export async function activate(context: vscode.ExtensionContext) {
 
   const stream = new EventStream(port);
   context.subscriptions.push(stream);
-
-  new ProjectTreeDataProvider().register(context);
-  new DeploymentsTreeDataProvider(stream).register(context);
-  new ConfigurationsTreeDataProvider().register(context);
-  new FilesTreeDataProvider().register(context);
-  new RequirementsTreeDataProvider().register(context);
-  new CredentialsTreeDataProvider().register(context);
-  new HelpAndFeedbackTreeDataProvider().register(context);
   new LogsTreeDataProvider(stream).register(context);
+
+  const providers = [
+    new ProjectTreeDataProvider(),
+    new FilesTreeDataProvider(),
+    new ConfigurationsTreeDataProvider(),
+    new RequirementsTreeDataProvider(),
+    new DeploymentsTreeDataProvider(stream),
+    new CredentialsTreeDataProvider(),
+    new HelpAndFeedbackTreeDataProvider(),
+  ];
+  providers.forEach(p => p.register(context));
+  new TopLevelTreeProvider(providers).register(context);
 
   setStateContext(PositPublishState.initialized);
 }

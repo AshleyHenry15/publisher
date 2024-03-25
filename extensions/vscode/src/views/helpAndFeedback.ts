@@ -1,23 +1,27 @@
 // Copyright (C) 2024 by Posit Software, PBC.
 
 import {
-  TreeDataProvider,
-  TreeItem,
-  ProviderResult,
   ExtensionContext,
-  window,
+  ProviderResult,
+  ThemeIcon,
+  TreeItem,
   Uri,
   commands,
   env,
 } from "vscode";
+
+import { PositTreeProvider } from "./toplevel";
 
 const viewName = "posit.publisher.helpAndFeedback";
 const openGettingStartedCommand = viewName + ".gettingStarted";
 const openFeedbackCommand = viewName + "openFeedback";
 
 export class HelpAndFeedbackTreeDataProvider
-  implements TreeDataProvider<HelpAndFeedbackTreeItem>
+  implements PositTreeProvider<HelpAndFeedbackTreeItem>
 {
+  public name: string = "Help and Feedback";
+  public iconPath: ThemeIcon = new ThemeIcon("info");
+
   constructor() {}
 
   getTreeItem(element: HelpAndFeedbackTreeItem): TreeItem | Thenable<TreeItem> {
@@ -45,10 +49,6 @@ export class HelpAndFeedbackTreeDataProvider
   }
 
   public register(context: ExtensionContext) {
-    context.subscriptions.push(
-      window.createTreeView(viewName, { treeDataProvider: this }),
-    );
-
     context.subscriptions.push(
       commands.registerCommand(openGettingStartedCommand, () => {
         env.openExternal(

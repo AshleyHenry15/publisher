@@ -7,7 +7,6 @@ import {
   FileSystemWatcher,
   RelativePattern,
   ThemeIcon,
-  TreeDataProvider,
   TreeItem,
   Uri,
   WorkspaceFolder,
@@ -21,6 +20,7 @@ import api from "../api";
 import { confirmOverwrite } from "../dialogs";
 import { getSummaryStringFromError } from "../utils/errors";
 import { fileExists } from "../utils/files";
+import { PositTreeProvider } from "./toplevel";
 
 const viewName = "posit.publisher.requirements";
 const editCommand = viewName + ".edit";
@@ -35,8 +35,11 @@ type RequirementsEventEmitter = EventEmitter<
 type RequirementsEvent = Event<RequirementsTreeItem | undefined | void>;
 
 export class RequirementsTreeDataProvider
-  implements TreeDataProvider<RequirementsTreeItem>
+  implements PositTreeProvider<RequirementsTreeItem>
 {
+  public name: string = "Requirements";
+  public iconPath: ThemeIcon = new ThemeIcon("package");
+
   private root: WorkspaceFolder | undefined;
   private fileUri: Uri | undefined;
   private _onDidChangeTreeData: RequirementsEventEmitter = new EventEmitter();
@@ -97,9 +100,6 @@ export class RequirementsTreeDataProvider
   }
 
   public register(context: ExtensionContext) {
-    context.subscriptions.push(
-      window.createTreeView(viewName, { treeDataProvider: this }),
-    );
     if (this.root !== undefined) {
       context.subscriptions.push(
         commands.registerCommand(editCommand, this.edit),

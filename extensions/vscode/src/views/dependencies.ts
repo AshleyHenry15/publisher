@@ -28,11 +28,7 @@ export class DependenciesTreeDataProvider
     return [];
   }
 
-  public register(context: ExtensionContext) {
-    context.subscriptions.push(
-      window.createTreeView(viewName, { treeDataProvider: this }),
-    );
-  }
+  public register(_: ExtensionContext) {}
 }
 
 export class DependenciesTreeItem extends TreeItem {

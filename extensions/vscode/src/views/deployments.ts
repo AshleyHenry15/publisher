@@ -6,7 +6,6 @@ import {
   ExtensionContext,
   RelativePattern,
   ThemeIcon,
-  TreeDataProvider,
   TreeItem,
   Uri,
   WorkspaceFolder,
@@ -33,6 +32,7 @@ import { addDeployment } from "../multiStepInputs/addDeployment";
 import { publishDeployment } from "../multiStepInputs/deployProject";
 import { formatDateString } from "../utils/date";
 import { getSummaryStringFromError } from "../utils/errors";
+import { PositTreeProvider } from "./toplevel";
 
 const viewName = "posit.publisher.deployments";
 const refreshCommand = viewName + ".refresh";
@@ -51,8 +51,11 @@ type DeploymentsEventEmitter = EventEmitter<
 type DeploymentsEvent = Event<DeploymentsTreeItem | undefined | void>;
 
 export class DeploymentsTreeDataProvider
-  implements TreeDataProvider<DeploymentsTreeItem>
+  implements PositTreeProvider<DeploymentsTreeItem>
 {
+  public name: string = "Deployments";
+  public iconPath: ThemeIcon = new ThemeIcon("cloud-upload");
+
   private root: WorkspaceFolder | undefined;
   private _onDidChangeTreeData: DeploymentsEventEmitter = new EventEmitter();
   readonly onDidChangeTreeData: DeploymentsEvent =
@@ -117,11 +120,6 @@ export class DeploymentsTreeDataProvider
   }
 
   public register(context: ExtensionContext) {
-    const treeView = window.createTreeView(viewName, {
-      treeDataProvider: this,
-    });
-    context.subscriptions.push(treeView);
-
     context.subscriptions.push(
       commands.registerCommand(addCommand, () => {
         addDeployment(this.stream);

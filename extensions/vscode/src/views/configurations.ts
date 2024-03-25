@@ -8,7 +8,6 @@ import {
   InputBoxValidationSeverity,
   RelativePattern,
   ThemeIcon,
-  TreeDataProvider,
   TreeItem,
   Uri,
   WorkspaceFolder,
@@ -16,6 +15,7 @@ import {
   window,
   workspace,
 } from "vscode";
+
 
 import api from "../api";
 import {
@@ -29,9 +29,9 @@ import { confirmDelete, confirmReplace } from "../dialogs";
 import { getSummaryStringFromError } from "../utils/errors";
 import { ensureSuffix, fileExists, isValidFilename } from "../utils/files";
 import { untitledConfigurationName } from "../utils/names";
+import { PositTreeProvider } from "./toplevel";
 
 const viewName = "posit.publisher.configurations";
-const refreshCommand = viewName + ".refresh";
 const addCommand = viewName + ".add";
 const editCommand = viewName + ".edit";
 const cloneCommand = viewName + ".clone";
@@ -46,8 +46,11 @@ type ConfigurationEventEmitter = EventEmitter<
 type ConfigurationEvent = Event<ConfigurationTreeItem | undefined | void>;
 
 export class ConfigurationsTreeDataProvider
-  implements TreeDataProvider<ConfigurationTreeItem>
+  implements PositTreeProvider<ConfigurationTreeItem>
 {
+  public name: string = "Configurations";
+  public iconPath: ThemeIcon = new ThemeIcon("gear");
+
   private root: WorkspaceFolder | undefined;
   private _onDidChangeTreeData: ConfigurationEventEmitter = new EventEmitter();
   readonly onDidChangeTreeData: ConfigurationEvent =
@@ -98,13 +101,7 @@ export class ConfigurationsTreeDataProvider
   }
 
   public register(context: ExtensionContext) {
-    const treeView = window.createTreeView(viewName, {
-      treeDataProvider: this,
-    });
-
     context.subscriptions.push(
-      treeView,
-      commands.registerCommand(refreshCommand, this.refresh),
       commands.registerCommand(addCommand, this.add),
       commands.registerCommand(editCommand, this.edit),
       commands.registerCommand(renameCommand, this.rename),

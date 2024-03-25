@@ -5,7 +5,6 @@ import {
   EventEmitter,
   ExtensionContext,
   ThemeIcon,
-  TreeDataProvider,
   TreeItem,
   commands,
   window,
@@ -13,6 +12,7 @@ import {
 
 import api, { Account } from "../api";
 import { getSummaryStringFromError } from "../utils/errors";
+import { PositTreeProvider } from "./toplevel";
 
 const viewName = "posit.publisher.credentials";
 const refreshCommand = viewName + ".refresh";
@@ -23,8 +23,11 @@ type CredentialEventEmitter = EventEmitter<
 type CredentialEvent = Event<CredentialsTreeItem | undefined | void>;
 
 export class CredentialsTreeDataProvider
-  implements TreeDataProvider<CredentialsTreeItem>
+  implements PositTreeProvider<CredentialsTreeItem>
 {
+  public name: string = "Credentials";
+  public iconPath: ThemeIcon = new ThemeIcon("key");
+
   private _onDidChangeTreeData: CredentialEventEmitter = new EventEmitter();
   readonly onDidChangeTreeData: CredentialEvent =
     this._onDidChangeTreeData.event;
@@ -63,10 +66,6 @@ export class CredentialsTreeDataProvider
   };
 
   public register(context: ExtensionContext) {
-    context.subscriptions.push(
-      window.createTreeView(viewName, { treeDataProvider: this }),
-    );
-
     context.subscriptions.push(
       commands.registerCommand(refreshCommand, this.refresh),
     );

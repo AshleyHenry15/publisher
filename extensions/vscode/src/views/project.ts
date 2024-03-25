@@ -1,18 +1,21 @@
 // Copyright (C) 2024 by Posit Software, PBC.
 
 import {
-  TreeDataProvider,
   TreeItem,
   ProviderResult,
   ExtensionContext,
-  window,
 } from "vscode";
 
-const viewName = "posit.publisher.project";
+import { PositTreeProvider } from "./toplevel";
+
+// const viewName = "posit.publisher.project";
 
 export class ProjectTreeDataProvider
-  implements TreeDataProvider<ProjectTreeItem>
+  implements PositTreeProvider<ProjectTreeItem>
 {
+  public name: string = "Project";
+  public iconPath = undefined;
+
   constructor() {}
 
   getTreeItem(element: ProjectTreeItem): TreeItem | Thenable<TreeItem> {
@@ -25,11 +28,7 @@ export class ProjectTreeDataProvider
     return [];
   }
 
-  public register(context: ExtensionContext) {
-    context.subscriptions.push(
-      window.createTreeView(viewName, { treeDataProvider: this }),
-    );
-  }
+  public register(_: ExtensionContext) {}
 }
 
 export class ProjectTreeItem extends TreeItem {

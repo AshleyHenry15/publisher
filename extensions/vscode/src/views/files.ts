@@ -3,7 +3,6 @@
 import { DeploymentFile, ExclusionMatch } from "../api/types/files";
 import { useApi } from "../api";
 import {
-  TreeDataProvider,
   TreeItem,
   ExtensionContext,
   window,
@@ -19,6 +18,7 @@ import {
 import { getSummaryStringFromError } from "../utils/errors";
 import * as path from "path";
 import { updateNewOrExistingFile, pathSorter } from "../utils/files";
+import { PositTreeProvider } from "./toplevel";
 
 import * as os from "os";
 
@@ -53,7 +53,10 @@ let excludedFiles: FileEntries[] = [];
 type FilesEventEmitter = EventEmitter<TreeEntries | undefined | void>;
 type FilesEvent = Event<TreeEntries | undefined | void>;
 
-export class FilesTreeDataProvider implements TreeDataProvider<TreeEntries> {
+export class FilesTreeDataProvider implements PositTreeProvider<TreeEntries> {
+  public name: string = "Files";
+  public iconPath: ThemeIcon = new ThemeIcon("list-unordered");
+
   private root: Uri;
   private _onDidChangeTreeData: FilesEventEmitter = new EventEmitter();
   readonly onDidChangeTreeData: FilesEvent = this._onDidChangeTreeData.event;
@@ -112,10 +115,6 @@ export class FilesTreeDataProvider implements TreeDataProvider<TreeEntries> {
   }
 
   public register(context: ExtensionContext) {
-    const treeView = window.createTreeView(viewName, {
-      treeDataProvider: this,
-    });
-    context.subscriptions.push(treeView);
     context.subscriptions.push(
       commands.registerCommand(refreshCommand, this.refresh),
     );
