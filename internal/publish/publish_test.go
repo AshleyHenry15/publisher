@@ -79,7 +79,10 @@ func (s *PublishSuite) TestPublishWithClientNewUpdate() {
 }
 
 func (s *PublishSuite) TestPublishWithClientNewFailAuth() {
-	authErr := errors.New("error from TestAuthentication")
+	authErr := types.NewAgentError(
+		types.AuthenticationFailedCode,
+		errors.New("error from TestAuthentication"),
+		nil)
 	s.publishWithClient(nil, authErr, nil, nil, nil, nil, nil, nil, nil, authErr)
 }
 
@@ -121,7 +124,10 @@ func (s *PublishSuite) TestPublishWithClientNewFailValidation() {
 func (s *PublishSuite) TestPublishWithClientRedeployFailAuth() {
 	target := deployment.New()
 	target.ID = "myContentID"
-	authErr := errors.New("error from TestAuthentication")
+	authErr := types.NewAgentError(
+		types.AuthenticationFailedCode,
+		errors.New("error from TestAuthentication"),
+		nil)
 	s.publishWithClient(target, authErr, nil, nil, nil, nil, nil, nil, nil, authErr)
 }
 
@@ -174,7 +180,7 @@ func (s *PublishSuite) TestPublishWithClientRedeployFailValidation() {
 
 func (s *PublishSuite) publishWithClient(
 	target *deployment.Deployment,
-	authErr, capErr, createErr, envVarErr, uploadErr, deployErr, waitErr, validateErr,
+	authErr *types.AgentError, capErr, createErr, envVarErr, uploadErr, deployErr, waitErr, validateErr,
 	expectedErr error) {
 
 	bundler, err := bundles.NewBundler(s.cwd, bundles.NewManifest(), nil, s.log)

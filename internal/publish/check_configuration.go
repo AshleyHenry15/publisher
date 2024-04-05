@@ -12,20 +12,21 @@ import (
 type checkConfigurationStartData struct{}
 type checkConfigurationSuccessData struct{}
 
-func (p *defaultPublisher) checkConfiguration(client connect.APIClient, log logging.Logger) error {
+func (p *defaultPublisher) checkConfiguration(client connect.APIClient, log logging.Logger) *types.AgentError {
 	op := events.PublishCheckCapabilitiesOp
 	log = log.WithArgs(logging.LogKeyOp, op)
 
 	p.emitter.Emit(events.New(op, events.StartPhase, types.NoError, checkConfigurationStartData{}))
 	log.Info("Checking configuration against server capabilities")
 
-	user, err := client.TestAuthentication(log)
-	if err != nil {
-		return types.AsAgentErrForOperation(op, err)
+	user, agentErr := client.TestAuthentication(log)
+	if agentErr != nil {
+		agentErr.SetOperation(op)
+		return agentErr
 	}
 	log.Info("Publishing with credentials", "username", user.Username, "email", user.Email)
 
-	err = client.CheckCapabilities(p.Dir, p.Config, log)
+	err := client.CheckCapabilities(p.Dir, p.Config, log)
 	if err != nil {
 		return types.AsAgentErrForOperation(op, err)
 	}

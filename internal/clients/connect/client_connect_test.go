@@ -407,7 +407,7 @@ func (s *ConnectClientSuite) TestTestAuthentication() {
 	}
 	user, err := client.TestAuthentication(logging.New())
 	s.Equal(expectedUser, user)
-	s.NoError(err)
+	s.Nil(err)
 }
 
 func (s *ConnectClientSuite) TestTestAuthentication404() {
@@ -425,7 +425,8 @@ func (s *ConnectClientSuite) TestTestAuthentication404() {
 	user, err := client.TestAuthentication(logging.New())
 	s.Nil(user)
 	s.NotNil(err)
-	s.ErrorIs(err, errInvalidServerOrCredentials)
+	s.Equal(err.Code, types.AuthenticationFailedCode)
+	s.ErrorContains(err, "could not validate credentials; check server URL and API key or token")
 }
 
 func (s *ConnectClientSuite) TestTestAuthenticationLocked() {
@@ -443,7 +444,9 @@ func (s *ConnectClientSuite) TestTestAuthenticationLocked() {
 	user, err := client.TestAuthentication(logging.New())
 	s.Nil(user)
 	s.NotNil(err)
-	s.ErrorContains(err, "user account bob is locked")
+	s.ErrorContains(err, "user account is locked")
+	s.Equal(err.Code, types.AccountLockedCode)
+	s.Equal(err.Data["accountName"], "bob")
 }
 
 func (s *ConnectClientSuite) TestTestAuthenticationNotConfirmed() {
@@ -461,7 +464,9 @@ func (s *ConnectClientSuite) TestTestAuthenticationNotConfirmed() {
 	user, err := client.TestAuthentication(logging.New())
 	s.Nil(user)
 	s.NotNil(err)
-	s.ErrorContains(err, "user account bob is not confirmed")
+	s.ErrorContains(err, "user account is not confirmed")
+	s.Equal(err.Code, types.AccountNotConfirmedCode)
+	s.Equal(err.Data["accountName"], "bob")
 }
 
 func (s *ConnectClientSuite) TestTestAuthenticationNotPublisher() {
@@ -480,5 +485,7 @@ func (s *ConnectClientSuite) TestTestAuthenticationNotPublisher() {
 	user, err := client.TestAuthentication(logging.New())
 	s.Nil(user)
 	s.NotNil(err)
-	s.ErrorContains(err, "user account bob with role 'viewer' does not have permission to publish content")
+	s.ErrorContains(err, "user account does not have publisher or administrator role")
+	s.Equal(err.Code, types.AccountNotPublisherCode)
+	s.Equal(err.Data["accountName"], "bob")
 }

@@ -69,7 +69,7 @@ func (u *UserDTO) toUser() *User {
 	}
 }
 
-var ErrTimedOut = errors.New("request timed out")
+var errTimedOut = errors.New("request timed out")
 
 const (
 	AuthRoleAdmin     = "administrator"
@@ -95,30 +95,40 @@ func isConnectAuthError(err error) bool {
 	return ok && (httpErr.Status == http.StatusNotFound || httpErr.Status == http.StatusUnauthorized)
 }
 
-func (c *ConnectClient) TestAuthentication(log logging.Logger) (*User, error) {
+var errAccountLocked = errors.New("user account is locked")
+var errAccountNotConfirmed = errors.New("user account is not confirmed")
+var errAccountNotPublisher = errors.New("user account does not have publisher or administrator role")
+
+func (c *ConnectClient) TestAuthentication(log logging.Logger) (*User, *types.AgentError) {
 	log.Info("Testing authentication", "method", c.account.AuthType.Description(), "url", c.account.URL)
 	var connectUser UserDTO
 	err := c.client.Get("/__api__/v1/user", &connectUser, log)
 	if err != nil {
 		if e, ok := err.(net.Error); ok && e.Timeout() {
-			return nil, ErrTimedOut
+			return nil, types.NewAgentError(types.TimeoutErrorCode, errTimedOut, nil)
 		} else if agentErr, ok := err.(*types.AgentError); ok {
 			if isConnectAuthError(agentErr.Err) {
-				return nil, errInvalidServerOrCredentials
+				return nil, types.NewAgentError(types.AuthenticationFailedCode, errInvalidServerOrCredentials, nil)
 			}
 		} else if e, ok := err.(*url.Error); ok {
-			return nil, e.Err
+			return nil, types.AsAgentError(e.Err)
 		}
-		return nil, err
+		return nil, types.AsAgentError(err)
 	}
 	if connectUser.Locked {
-		return nil, fmt.Errorf("user account %s is locked", connectUser.Username)
+		return nil, types.NewAgentError(types.AccountLockedCode,
+			errAccountLocked,
+			types.AccountErrorDetails{AccountName: connectUser.Username})
 	}
 	if !connectUser.Confirmed {
-		return nil, fmt.Errorf("user account %s is not confirmed", connectUser.Username)
+		return nil, types.NewAgentError(types.AccountNotConfirmedCode,
+			errAccountNotConfirmed,
+			types.AccountErrorDetails{AccountName: connectUser.Username})
 	}
 	if !(connectUser.UserRole == "publisher" || connectUser.UserRole == "administrator") {
-		return nil, fmt.Errorf("user account %s with role '%s' does not have permission to publish content", connectUser.Username, connectUser.UserRole)
+		return nil, types.NewAgentError(types.AccountNotPublisherCode,
+			errAccountNotPublisher,
+			types.AccountErrorDetails{AccountName: connectUser.Username})
 	}
 	return connectUser.toUser(), nil
 }

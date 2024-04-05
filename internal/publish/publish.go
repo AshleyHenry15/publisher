@@ -124,10 +124,7 @@ func (p *defaultPublisher) isDeployed() bool {
 }
 
 func (p *defaultPublisher) emitErrorEvents(err error, log logging.Logger) {
-	agentErr, ok := err.(*types.AgentError)
-	if !ok {
-		agentErr = types.NewAgentError(types.UnknownErrorCode, err, nil)
-	}
+	agentErr := types.AsAgentError(err)
 	dashboardURL := ""
 	directURL := ""
 
@@ -265,9 +262,11 @@ func (p *defaultPublisher) publishWithClient(
 	client connect.APIClient,
 	log logging.Logger) error {
 
-	err := p.checkConfiguration(client, log)
-	if err != nil {
-		return err
+	var err error
+
+	agentErr := p.checkConfiguration(client, log)
+	if agentErr != nil {
+		return agentErr
 	}
 
 	var contentID types.ContentID

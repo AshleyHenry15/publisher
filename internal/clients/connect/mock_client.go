@@ -27,9 +27,9 @@ func (m *MockClient) Read(p []byte) (n int, err error) {
 	return args.Int(0), args.Error(1)
 }
 
-func (m *MockClient) TestAuthentication(log logging.Logger) (*User, error) {
+func (m *MockClient) TestAuthentication(log logging.Logger) (*User, *types.AgentError) {
 	args := m.Called(log)
-	return args.Get(0).(*User), args.Error(1)
+	return args.Get(0).(*User), args.Get(1).(*types.AgentError)
 }
 
 func (m *MockClient) CreateDeployment(s *ConnectContent, log logging.Logger) (types.ContentID, error) {
