@@ -33,7 +33,7 @@ func (p *defaultPublisher) createAndUploadBundle(
 	op := events.PublishCreateBundleOp
 	prepareLog := log.WithArgs(logging.LogKeyOp, op)
 
-	p.emitter.Emit(events.New(op, events.StartPhase, events.NoError, createBundleStartData{}))
+	p.emitter.Emit(events.New(op, events.StartPhase, types.NoError, createBundleStartData{}))
 	prepareLog.Info("Preparing files")
 	bundleFile, err := os.CreateTemp("", "bundle-*.tar.gz")
 	if err != nil {
@@ -51,7 +51,7 @@ func (p *defaultPublisher) createAndUploadBundle(
 		return "", types.OperationError(op, err)
 	}
 	prepareLog.Info("Done preparing files", "filename", bundleFile.Name())
-	p.emitter.Emit(events.New(op, events.SuccessPhase, events.NoError, createBundleSuccessData{
+	p.emitter.Emit(events.New(op, events.SuccessPhase, types.NoError, createBundleSuccessData{
 		Filename: bundleFile.Name(),
 	}))
 
@@ -59,7 +59,7 @@ func (p *defaultPublisher) createAndUploadBundle(
 	op = events.PublishUploadBundleOp
 	uploadLog := log.WithArgs(logging.LogKeyOp, op)
 
-	p.emitter.Emit(events.New(op, events.StartPhase, events.NoError, uploadBundleStartData{}))
+	p.emitter.Emit(events.New(op, events.StartPhase, types.NoError, uploadBundleStartData{}))
 	uploadLog.Info("Uploading files")
 
 	bundleID, err := client.UploadBundle(contentID, bundleFile, log)
@@ -77,7 +77,7 @@ func (p *defaultPublisher) createAndUploadBundle(
 		return "", err
 	}
 	uploadLog.Info("Done uploading files", "bundle_id", bundleID)
-	p.emitter.Emit(events.New(op, events.SuccessPhase, events.NoError, uploadBundleSuccessData{
+	p.emitter.Emit(events.New(op, events.SuccessPhase, types.NoError, uploadBundleSuccessData{
 		BundleID: bundleID,
 	}))
 	return bundleID, nil

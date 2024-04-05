@@ -303,7 +303,7 @@ func (s *ConnectClientSuite) TestWaitForTaskErr() {
 	op := events.Operation("")
 	op, err = client.handleTaskUpdate(&task, op, log)
 	s.Equal(&types.AgentError{
-		Code:    events.DeploymentFailedCode,
+		Code:    types.DeploymentFailedCode,
 		Err:     errors.New(msg),
 		Message: msg,
 		Data: types.ErrorData{
@@ -348,7 +348,7 @@ func (s *ConnectClientSuite) TestValidateDeploymentAppFailure() {
 	httpErr := &http_client.HTTPError{
 		Status: 502,
 	}
-	agentError := types.NewAgentError(events.ServerErrorCode, httpErr, nil)
+	agentError := types.NewAgentError(types.ServerErrorCode, httpErr, nil)
 	httpClient.On("GetRaw", mock.Anything, mock.Anything).Return(nil, agentError)
 
 	client := &ConnectClient{
@@ -365,7 +365,7 @@ func (s *ConnectClientSuite) TestValidateDeploymentHTTPNonAppErr() {
 	httpErr := &http_client.HTTPError{
 		Status: 405,
 	}
-	agentError := types.NewAgentError(events.ServerErrorCode, httpErr, nil)
+	agentError := types.NewAgentError(types.ServerErrorCode, httpErr, nil)
 	httpClient.On("GetRaw", mock.Anything, mock.Anything).Return(nil, agentError)
 
 	client := &ConnectClient{
@@ -415,7 +415,7 @@ func (s *ConnectClientSuite) TestTestAuthentication404() {
 	httpErr := &http_client.HTTPError{
 		Status: 404,
 	}
-	agentError := types.NewAgentError(events.ServerErrorCode, httpErr, nil)
+	agentError := types.NewAgentError(types.ServerErrorCode, httpErr, nil)
 	httpClient.On("Get", "/__api__/v1/user", mock.Anything, mock.Anything).Return(agentError)
 
 	client := &ConnectClient{

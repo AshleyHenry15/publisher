@@ -371,10 +371,10 @@ func (c *ConnectClient) handleTaskUpdate(task *taskDTO, op types.Operation, log 
 		if nextOp != op {
 			if op != "" {
 				log.Info("Done", logging.LogKeyOp, op)
-				c.emitter.Emit(events.New(op, events.SuccessPhase, events.NoError, events.NoData))
+				c.emitter.Emit(events.New(op, events.SuccessPhase, types.NoError, events.NoData))
 			}
 			op = nextOp
-			c.emitter.Emit(events.New(op, events.StartPhase, events.NoError, events.NoData))
+			c.emitter.Emit(events.New(op, events.StartPhase, types.NoError, events.NoData))
 			log.Info(line, logging.LogKeyOp, op)
 		} else {
 			log.Info(line, logging.LogKeyOp, op)
@@ -383,17 +383,17 @@ func (c *ConnectClient) handleTaskUpdate(task *taskDTO, op types.Operation, log 
 		// Log a progress event for certain matching log lines.
 		event := packageEventFromLogLine(line)
 		if event != nil {
-			c.emitter.Emit(events.New(op, events.StatusPhase, events.NoError, event))
+			c.emitter.Emit(events.New(op, events.StatusPhase, types.NoError, event))
 		}
 	}
 	if task.Finished {
 		if task.Error != "" {
 			details := connectErrorDetails(task.Error)
-			err := types.NewAgentError(events.DeploymentFailedCode, errors.New(task.Error), details)
+			err := types.NewAgentError(types.DeploymentFailedCode, errors.New(task.Error), details)
 			err.SetOperation(op)
 			return op, err
 		}
-		c.emitter.Emit(events.New(op, events.SuccessPhase, events.NoError, events.NoData))
+		c.emitter.Emit(events.New(op, events.SuccessPhase, types.NoError, events.NoData))
 	}
 	return op, nil
 }

@@ -22,7 +22,7 @@ func (p *defaultPublisher) createDeployment(client connect.APIClient, log loggin
 	op := events.PublishCreateNewDeploymentOp
 	log = log.WithArgs(logging.LogKeyOp, op)
 
-	p.emitter.Emit(events.New(op, events.StartPhase, events.NoError, createDeploymentStartData{
+	p.emitter.Emit(events.New(op, events.StartPhase, types.NoError, createDeploymentStartData{
 		SaveName: p.SaveName,
 	}))
 	log.Info("Creating new deployment")
@@ -33,7 +33,7 @@ func (p *defaultPublisher) createDeployment(client connect.APIClient, log loggin
 	}
 
 	log.Info("Created deployment", "content_id", contentID)
-	p.emitter.Emit(events.New(op, events.SuccessPhase, events.NoError, createDeploymentSuccessData{
+	p.emitter.Emit(events.New(op, events.SuccessPhase, types.NoError, createDeploymentSuccessData{
 		ContentID: contentID,
 		SaveName:  p.SaveName,
 	}))

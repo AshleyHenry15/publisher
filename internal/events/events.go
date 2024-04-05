@@ -11,6 +11,7 @@ import (
 	"github.com/rstudio/connect-client/internal/types"
 )
 
+type ErrorCode = types.ErrorCode
 type EventType = string
 type EventData = types.ErrorData
 

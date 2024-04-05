@@ -23,7 +23,7 @@ func (p *defaultPublisher) validateContent(
 	op := events.PublishValidateDeploymentOp
 	log = log.WithArgs(logging.LogKeyOp, op)
 
-	p.emitter.Emit(events.New(op, events.StartPhase, events.NoError, validateStartData{
+	p.emitter.Emit(events.New(op, events.StartPhase, types.NoError, validateStartData{
 		DirectURL: getDirectURL(p.Account.URL, p.Target.ID),
 	}))
 	log.Info("Validating Deployment")
@@ -34,6 +34,6 @@ func (p *defaultPublisher) validateContent(
 	}
 
 	log.Info("Done validating deployment")
-	p.emitter.Emit(events.New(op, events.SuccessPhase, events.NoError, validateSuccessData{}))
+	p.emitter.Emit(events.New(op, events.SuccessPhase, types.NoError, validateSuccessData{}))
 	return nil
 }

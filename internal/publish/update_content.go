@@ -30,7 +30,7 @@ func (p *defaultPublisher) updateContent(
 	op := events.PublishUpdateDeploymentOp
 	log = log.WithArgs(logging.LogKeyOp, op)
 
-	p.emitter.Emit(events.New(op, events.StartPhase, events.NoError, updateContentStartData{
+	p.emitter.Emit(events.New(op, events.StartPhase, types.NoError, updateContentStartData{
 		ContentID: contentID,
 		SaveName:  p.SaveName,
 	}))
@@ -44,13 +44,13 @@ func (p *defaultPublisher) updateContent(
 			details := DeploymentNotFoundErrorDetails{
 				ContentID: contentID,
 			}
-			return types.NewAgentError(events.DeploymentNotFoundCode, err, details)
+			return types.NewAgentError(types.DeploymentNotFoundCode, err, details)
 		} else {
 			return types.OperationError(op, err)
 		}
 	}
 
 	log.Info("Done updating settings")
-	p.emitter.Emit(events.New(op, events.SuccessPhase, events.NoError, updateContentSuccessData{}))
+	p.emitter.Emit(events.New(op, events.SuccessPhase, types.NoError, updateContentSuccessData{}))
 	return nil
 }

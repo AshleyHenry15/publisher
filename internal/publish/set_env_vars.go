@@ -25,7 +25,7 @@ func (p *defaultPublisher) setEnvVars(
 	op := events.PublishSetEnvVarsOp
 	log = log.WithArgs(logging.LogKeyOp, op)
 
-	p.emitter.Emit(events.New(op, events.StartPhase, events.NoError, setEnvVarsStartData{}))
+	p.emitter.Emit(events.New(op, events.StartPhase, types.NoError, setEnvVarsStartData{}))
 	log.Info("Setting environment variables")
 
 	for name, value := range env {
@@ -37,6 +37,6 @@ func (p *defaultPublisher) setEnvVars(
 	}
 
 	log.Info("Done setting environment variables")
-	p.emitter.Emit(events.New(op, events.SuccessPhase, events.NoError, setEnvVarsSuccessData{}))
+	p.emitter.Emit(events.New(op, events.SuccessPhase, types.NoError, setEnvVarsSuccessData{}))
 	return nil
 }

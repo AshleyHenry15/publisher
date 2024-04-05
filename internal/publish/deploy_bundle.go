@@ -23,7 +23,7 @@ func (p *defaultPublisher) deployBundle(
 	op := events.PublishDeployBundleOp
 	log = log.WithArgs(logging.LogKeyOp, op)
 
-	p.emitter.Emit(events.New(op, events.StartPhase, events.NoError, deployBundleStartData{}))
+	p.emitter.Emit(events.New(op, events.StartPhase, types.NoError, deployBundleStartData{}))
 	log.Info("Activating Deployment")
 
 	taskID, err := client.DeployBundle(contentID, bundleID, log)
@@ -32,7 +32,7 @@ func (p *defaultPublisher) deployBundle(
 	}
 
 	log.Info("Activation requested")
-	p.emitter.Emit(events.New(op, events.SuccessPhase, events.NoError, deployBundleSuccessData{
+	p.emitter.Emit(events.New(op, events.SuccessPhase, types.NoError, deployBundleSuccessData{
 		TaskID: taskID,
 	}))
 	return taskID, nil

@@ -177,7 +177,7 @@ func (p *defaultPublisher) publish(
 	bundler bundles.Bundler,
 	log logging.Logger) error {
 
-	p.emitter.Emit(events.New(events.PublishOp, events.StartPhase, events.NoError, publishStartData{
+	p.emitter.Emit(events.New(events.PublishOp, events.StartPhase, types.NoError, publishStartData{
 		Server: p.Account.URL,
 	}))
 	log.Info("Starting deployment to server", "server", p.Account.URL)
@@ -195,7 +195,7 @@ func (p *defaultPublisher) publish(
 	if err != nil {
 		p.emitErrorEvents(err, log)
 	} else {
-		p.emitter.Emit(events.New(events.PublishOp, events.SuccessPhase, events.NoError, publishSuccessData{
+		p.emitter.Emit(events.New(events.PublishOp, events.SuccessPhase, types.NoError, publishSuccessData{
 			DashboardURL: getDashboardURL(p.Account.URL, p.Target.ID),
 			DirectURL:    getDirectURL(p.Account.URL, p.Target.ID),
 			ServerURL:    p.Account.URL,

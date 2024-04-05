@@ -51,7 +51,7 @@ func (s *ErrorsSuite) TestErrorDetails() {
 	// in the callee
 	err := errors.New("An internal publishing server error occurred")
 	details := testErrorDetails{Status: 500}
-	returnedErr := types.NewAgentError(ServerErrorCode, err, details)
+	returnedErr := types.NewAgentError(types.ServerErrorCode, err, details)
 
 	// in the caller
 	agentErr := types.OperationError(PublishRestorePythonEnvOp, returnedErr)
@@ -69,7 +69,7 @@ func (s *ErrorsSuite) TestErrorObjectAndDetails() {
 	// in the callee
 	_, err := os.Stat("/nonexistent")
 	details := testErrorDetails{Status: 500}
-	returnedErr := types.NewAgentError(ServerErrorCode, err, details)
+	returnedErr := types.NewAgentError(types.ServerErrorCode, err, details)
 
 	// in the caller
 	agentErr := types.OperationError(PublishRestorePythonEnvOp, returnedErr)

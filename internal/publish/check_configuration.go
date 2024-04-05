@@ -16,7 +16,7 @@ func (p *defaultPublisher) checkConfiguration(client connect.APIClient, log logg
 	op := events.PublishCheckCapabilitiesOp
 	log = log.WithArgs(logging.LogKeyOp, op)
 
-	p.emitter.Emit(events.New(op, events.StartPhase, events.NoError, checkConfigurationStartData{}))
+	p.emitter.Emit(events.New(op, events.StartPhase, types.NoError, checkConfigurationStartData{}))
 	log.Info("Checking configuration against server capabilities")
 
 	user, err := client.TestAuthentication(log)
@@ -31,6 +31,6 @@ func (p *defaultPublisher) checkConfiguration(client connect.APIClient, log logg
 	}
 
 	log.Info("Configuration OK")
-	p.emitter.Emit(events.New(op, events.SuccessPhase, events.NoError, checkConfigurationSuccessData{}))
+	p.emitter.Emit(events.New(op, events.SuccessPhase, types.NoError, checkConfigurationSuccessData{}))
 	return nil
 }

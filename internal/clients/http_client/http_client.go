@@ -19,7 +19,6 @@ import (
 
 	"github.com/rstudio/connect-client/internal/accounts"
 	"github.com/rstudio/connect-client/internal/api_client/auth"
-	"github.com/rstudio/connect-client/internal/events"
 	"github.com/rstudio/connect-client/internal/logging"
 	"github.com/rstudio/connect-client/internal/types"
 	"github.com/rstudio/connect-client/internal/util"
@@ -80,9 +79,9 @@ func (c *defaultHTTPClient) do(method string, path string, body io.Reader, bodyT
 	resp, err := c.client.Do(req)
 	if err != nil {
 		if e, ok := err.(net.Error); ok && e.Timeout() {
-			return nil, types.NewAgentError(events.OperationTimedOutCode, err, nil)
+			return nil, types.NewAgentError(types.OperationTimedOutCode, err, nil)
 		}
-		return nil, types.NewAgentError(events.ConnectionFailedCode, err, nil)
+		return nil, types.NewAgentError(types.ConnectionFailedCode, err, nil)
 	}
 	defer resp.Body.Close()
 
@@ -100,12 +99,12 @@ func (c *defaultHTTPClient) do(method string, path string, body io.Reader, bodyT
 		if err == nil {
 			_ = json.Unmarshal(body, &errDetails)
 		}
-		errCode := events.ServerErrorCode
+		errCode := types.ServerErrorCode
 		switch resp.StatusCode {
 		case http.StatusUnauthorized:
-			errCode = events.AuthenticationFailedCode
+			errCode = types.AuthenticationFailedCode
 		case http.StatusForbidden:
-			errCode = events.PermissionsCode
+			errCode = types.PermissionsCode
 		}
 		httpErr := NewHTTPError(apiURL, method, resp.StatusCode)
 		if errDetails == nil {
