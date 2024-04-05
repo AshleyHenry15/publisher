@@ -26,8 +26,6 @@ type AgentError struct {
 	Data    ErrorData `json:"data" toml:"data,omitempty"`
 }
 
-const UnknownErrorCode ErrorCode = "unknown"
-
 func AsAgentError(e error) *AgentError {
 	if e == nil {
 		return nil
@@ -37,6 +35,15 @@ func AsAgentError(e error) *AgentError {
 		return agentErr
 	}
 	return NewAgentError(UnknownErrorCode, e, nil)
+}
+
+func AsAgentErrForOperation(op Operation, err error) *AgentError {
+	if err == nil {
+		return nil
+	}
+	agentErr := AsAgentError(err)
+	agentErr.SetOperation(op)
+	return agentErr
 }
 
 func NewAgentError(code ErrorCode, err error, details any) *AgentError {
@@ -81,13 +88,4 @@ func (e *AgentError) GetData() ErrorData {
 
 func (e *AgentError) Error() string {
 	return e.Err.Error()
-}
-
-func AsAgentErrForOperation(op Operation, err error) EventableError {
-	e, ok := err.(EventableError)
-	if !ok {
-		e = NewAgentError(UnknownErrorCode, err, nil)
-	}
-	e.SetOperation(op)
-	return e
 }
