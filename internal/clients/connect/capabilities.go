@@ -4,7 +4,6 @@ package connect
 
 import (
 	"errors"
-	"fmt"
 	"strings"
 
 	"github.com/rstudio/connect-client/internal/clients/connect/server_settings"
@@ -24,25 +23,31 @@ type allSettings struct {
 	quarto      server_settings.QuartoInfo
 }
 
-const requirementsFileMissing = `
-can't find the package file (%s) in the project directory.
+var errRequirementsFileMissing = errors.New(
+	`can't find the package file in the project directory.
 Create the file, listing the packages your project depends on.
 Or scan your project dependencies using the publisher UI or
-the 'publisher requirements create' command`
+the 'publisher requirements create' command`)
 
-func checkRequirementsFile(base util.AbsolutePath, requirementsFilename string) error {
+type RequirementsFileMissingDetails struct {
+	Path string `mapstructure:"path"`
+}
+
+func checkRequirementsFile(base util.AbsolutePath, requirementsFilename string) *types.AgentError {
 	packageFile := base.Join(requirementsFilename)
 	exists, err := packageFile.Exists()
 	if err != nil {
-		return err
+		return types.AsAgentError(err)
 	}
 	if !exists {
-		return fmt.Errorf(requirementsFileMissing, requirementsFilename)
+		return types.NewAgentError(types.RequirementFileMissingCode,
+			errRequirementsFileMissing,
+			types.PathDetails{Path: packageFile.String()})
 	}
 	return nil
 }
 
-func (c *ConnectClient) CheckCapabilities(base util.AbsolutePath, cfg *config.Config, log logging.Logger) error {
+func (c *ConnectClient) CheckCapabilities(base util.AbsolutePath, cfg *config.Config, log logging.Logger) *types.AgentError {
 	if cfg.Python != nil {
 		err := checkRequirementsFile(base, cfg.Python.PackageFile)
 		if err != nil {
@@ -51,7 +56,7 @@ func (c *ConnectClient) CheckCapabilities(base util.AbsolutePath, cfg *config.Co
 	}
 	settings, err := c.getSettings(cfg, log)
 	if err != nil {
-		return err
+		return types.AsAgentError(err)
 	}
 	return settings.checkConfig(cfg)
 }
@@ -110,40 +115,34 @@ var (
 	errRuntimeSettingsForStaticContent   = errors.New("runtime settings cannot be applied to static content")
 )
 
-func adminError(attr string) error {
-	return fmt.Errorf("%s requires administrator privileges", attr)
+var errAdminPrivilegesRequired = errors.New("this operation requires administrator privileges")
+
+func adminError(attr string) *types.AgentError {
+	return types.NewAgentError(types.AdminPrivilegesRequiredCode,
+		errAdminPrivilegesRequired,
+		&types.ConfigKeyDetails{ConfigKey: attr})
 }
 
 func majorMinorVersion(version string) string {
 	return strings.Join(strings.Split(version, ".")[:2], ".")
 }
 
-type pythonNotAvailableErr struct {
-	Requested string
-	Available []string
-}
+var errPythonNotAvailable = errors.New("the configured Python version is not available on the server. Consider editing your configuration file to request one of the available versions")
 
-func newPythonNotAvailableErr(requested string, installations []server_settings.PyInstallation) *pythonNotAvailableErr {
+func newPythonNotAvailableErr(requested string, installations []server_settings.PyInstallation) *types.AgentError {
 	available := make([]string, 0, len(installations))
 	for _, inst := range installations {
 		available = append(available, inst.Version)
 	}
-	return &pythonNotAvailableErr{
-		Requested: requested,
-		Available: available,
-	}
+	return types.NewAgentError(types.PythonNotAvailableCode,
+		errPythonNotAvailable,
+		&types.VersionNotAvailableDetails{
+			Requested: requested,
+			Available: available,
+		})
 }
 
-const pythonNotAvailableCode types.ErrorCode = "pythonNotAvailable"
-const pythonNotAvailableMsg = `Python %s is not available on the server.
-Consider editing your configuration file to request one of the available versions:
-%s.`
-
-func (e *pythonNotAvailableErr) Error() string {
-	return fmt.Sprintf(pythonNotAvailableMsg, e.Requested, strings.Join(e.Available, ", "))
-}
-
-func (a *allSettings) checkMatchingPython(version string) error {
+func (a *allSettings) checkMatchingPython(version string) *types.AgentError {
 	if version == "" {
 		// This is prevented by version being mandatory in the schema.
 		return nil
@@ -154,24 +153,23 @@ func (a *allSettings) checkMatchingPython(version string) error {
 			return nil
 		}
 	}
-	return types.NewAgentError(pythonNotAvailableCode,
-		newPythonNotAvailableErr(requested, a.python.Installations), nil)
+	return newPythonNotAvailableErr(requested, a.python.Installations)
 }
 
-func (a *allSettings) checkKubernetes(cfg *config.Config) error {
+func (a *allSettings) checkKubernetes(cfg *config.Config) *types.AgentError {
 	k := cfg.Connect.Kubernetes
 	if k == nil {
 		// No kubernetes config present
 		return nil
 	}
 	if !a.general.License.LauncherEnabled {
-		return errKubernetesNotLicensed
+		return types.NewAgentError(types.KubernetesNotLicensedCode, errKubernetesNotLicensed, nil)
 	}
 	if a.general.ExecutionType != server_settings.ExecutionTypeKubernetes {
-		return errKubernetesNotConfigured
+		return types.NewAgentError(types.KubernetesNotConfiguredCode, errKubernetesNotConfigured, nil)
 	}
 	if k.DefaultImageName != "" && !a.general.DefaultImageSelectionEnabled {
-		return errImageSelectionNotEnabled
+		return types.NewAgentError(types.ImageSelectionNotEnabledCode, errImageSelectionNotEnabled, nil)
 	}
 	if k.ServiceAccountName != "" && !a.user.CanAdmin() {
 		return adminError("service-account-name")
@@ -213,7 +211,7 @@ func (a *allSettings) checkKubernetes(cfg *config.Config) error {
 	return nil
 }
 
-func (a *allSettings) checkRuntime(cfg *config.Config) error {
+func (a *allSettings) checkRuntime(cfg *config.Config) *types.AgentError {
 	r := cfg.Connect.Runtime
 	if r == nil {
 		// No runtime configuration present
@@ -221,7 +219,7 @@ func (a *allSettings) checkRuntime(cfg *config.Config) error {
 	}
 	appMode := AppModeFromType(cfg.Type)
 	if appMode.IsStaticContent() {
-		return errRuntimeSettingsForStaticContent
+		return types.NewAgentError(types.RuntimeSettingsForStaticContentCode, errRuntimeSettingsForStaticContent, nil)
 	}
 	s := a.scheduler
 
@@ -241,7 +239,7 @@ func (a *allSettings) checkRuntime(cfg *config.Config) error {
 	return nil
 }
 
-func (a *allSettings) checkAccess(cfg *config.Config) error {
+func (a *allSettings) checkAccess(cfg *config.Config) *types.AgentError {
 	if cfg.Connect.Access == nil {
 		// No access configuration present
 		return nil
@@ -249,16 +247,16 @@ func (a *allSettings) checkAccess(cfg *config.Config) error {
 	racu := cfg.Connect.Access.RunAsCurrentUser
 	if racu != nil && *racu {
 		if !a.general.License.CurrentUserExecution {
-			return errCurrentUserExecutionNotLicensed
+			return types.NewAgentError(types.CurrentUserExecutionNotLicensedCode, errCurrentUserExecutionNotLicensed, nil)
 		}
 		if !a.application.RunAsCurrentUser {
-			return errCurrentUserExecutionNotConfigured
+			return types.NewAgentError(types.CurrentUserExecutionNotConfiguredCode, errCurrentUserExecutionNotConfigured, nil)
 		}
 		if !a.user.CanAdmin() {
 			return adminError("run-as-current-user")
 		}
 		if !cfg.Type.IsAppContent() {
-			return errOnlyAppsCanRACU
+			return types.NewAgentError(types.OnlyAppsCanRACUCode, errOnlyAppsCanRACU, nil)
 		}
 	}
 
@@ -268,14 +266,14 @@ func (a *allSettings) checkAccess(cfg *config.Config) error {
 	return nil
 }
 
-func (a *allSettings) checkConfig(cfg *config.Config) error {
+func (a *allSettings) checkConfig(cfg *config.Config) *types.AgentError {
 	if cfg.Type.IsAPIContent() {
 		if !a.general.License.AllowAPIs {
-			return errAPIsNotLicensed
+			return types.NewAgentError(types.APIsNotLicensedCode, errAPIsNotLicensed, nil)
 		}
 	}
 	if len(cfg.Description) > 4096 {
-		return errDescriptionTooLong
+		return types.NewAgentError(types.DescriptionTooLongCode, errDescriptionTooLong, nil)
 	}
 	// we don't upload thumbnails yet, but when we do, we will check MaximumAppImageSize
 
@@ -302,7 +300,9 @@ func (a *allSettings) checkConfig(cfg *config.Config) error {
 	return nil
 }
 
-func checkMaxInt[T int32 | int64](attr string, valuePtr *T, limit T) error {
+var errValueOutOfRange = errors.New("value is out of range")
+
+func checkMaxInt[T int32 | int64](attr string, valuePtr *T, limit T) *types.AgentError {
 	if valuePtr == nil {
 		return nil
 	}
@@ -310,17 +310,22 @@ func checkMaxInt[T int32 | int64](attr string, valuePtr *T, limit T) error {
 		return nil
 	}
 	value := *valuePtr
-	if value < 0 {
-		return fmt.Errorf("%s value cannot be less than 0", attr)
-	} else if value > limit {
-		return fmt.Errorf(
-			"%s value of %d is higher than configured maximum of %d on this server",
-			attr, value, limit)
+	if value < 0 || value > limit {
+
+		return types.NewAgentError(
+			types.ValueOutOfRangeCode,
+			errValueOutOfRange,
+			&types.ValueRangeDetails{
+				ConfigKey: attr,
+				Value:     float64(value),
+				Min:       0,
+				Max:       float64(limit),
+			})
 	}
 	return nil
 }
 
-func checkMaxFloat(attr string, valuePtr *float64, limit float64) error {
+func checkMaxFloat(attr string, valuePtr *float64, limit float64) *types.AgentError {
 	if valuePtr == nil {
 		return nil
 	}
@@ -328,19 +333,23 @@ func checkMaxFloat(attr string, valuePtr *float64, limit float64) error {
 		return nil
 	}
 	value := *valuePtr
-	if value < 0 {
-		return fmt.Errorf("%s value cannot be less than 0", attr)
-	} else if value > limit {
-		return fmt.Errorf(
-			"%s value of %f is higher than configured maximum of %f on this server",
-			attr, value, limit)
+	if value < 0 || value > limit {
+		return types.NewAgentError(
+			types.ValueOutOfRangeCode,
+			errValueOutOfRange,
+			&types.ValueRangeDetails{
+				ConfigKey: attr,
+				Value:     value,
+				Min:       0,
+				Max:       limit,
+			})
 	}
 	return nil
 }
 
 func checkMinMaxIntWithDefaults[T int32 | int64](
 	minAttr string, cfgMin *T, defaultMin T,
-	maxAttr string, cfgMax *T, defaultMax T) error {
+	maxAttr string, cfgMax *T, defaultMax T) *types.AgentError {
 
 	minValue := defaultMin
 	if cfgMin != nil {
@@ -355,16 +364,22 @@ func checkMinMaxIntWithDefaults[T int32 | int64](
 		return nil
 	}
 	if minValue > maxValue {
-		return fmt.Errorf(
-			"%s value of %d is higher than %s value of %d",
-			minAttr, minValue, maxAttr, maxValue)
+		return types.NewAgentError(
+			types.MinGreaterThanMaxCode,
+			errValueOutOfRange,
+			&types.MinGreaterThanMaxDetails{
+				ConfigKey:    minAttr,
+				MaxConfigKey: maxAttr,
+				Value:        float64(minValue),
+				Max:          float64(maxValue),
+			})
 	}
 	return nil
 }
 
 func checkMinMaxFloatWithDefaults(
 	minAttr string, cfgMin *float64, defaultMin float64,
-	maxAttr string, cfgMax *float64, defaultMax float64) error {
+	maxAttr string, cfgMax *float64, defaultMax float64) *types.AgentError {
 
 	minValue := defaultMin
 	if cfgMin != nil {
@@ -379,9 +394,15 @@ func checkMinMaxFloatWithDefaults(
 		return nil
 	}
 	if minValue > maxValue {
-		return fmt.Errorf(
-			"%s value of %f is higher than %s value of %f",
-			minAttr, minValue, maxAttr, maxValue)
+		return types.NewAgentError(
+			types.MinGreaterThanMaxCode,
+			errValueOutOfRange,
+			&types.MinGreaterThanMaxDetails{
+				ConfigKey:    minAttr,
+				MaxConfigKey: maxAttr,
+				Value:        float64(minValue),
+				Max:          float64(maxValue),
+			})
 	}
 	return nil
 }

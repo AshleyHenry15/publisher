@@ -87,7 +87,9 @@ func (s *PublishSuite) TestPublishWithClientNewFailAuth() {
 }
 
 func (s *PublishSuite) TestPublishWithClientNewFailCapabilities() {
-	capErr := errors.New("error from CheckCapabilities")
+	capErr := types.NewAgentError(
+		types.DescriptionTooLongCode,
+		errors.New("error from CheckCapabilities"), nil)
 	s.publishWithClient(nil, nil, capErr, nil, nil, nil, nil, nil, nil, capErr)
 }
 
@@ -134,7 +136,9 @@ func (s *PublishSuite) TestPublishWithClientRedeployFailAuth() {
 func (s *PublishSuite) TestPublishWithClientRedeployFailCapabilities() {
 	target := deployment.New()
 	target.ID = "myContentID"
-	capErr := errors.New("error from CheckCapabilities")
+	capErr := types.NewAgentError(
+		types.DescriptionTooLongCode,
+		errors.New("error from CheckCapabilities"), nil)
 	s.publishWithClient(target, nil, capErr, nil, nil, nil, nil, nil, nil, capErr)
 }
 
@@ -180,7 +184,7 @@ func (s *PublishSuite) TestPublishWithClientRedeployFailValidation() {
 
 func (s *PublishSuite) publishWithClient(
 	target *deployment.Deployment,
-	authErr *types.AgentError, capErr, createErr, envVarErr, uploadErr, deployErr, waitErr, validateErr,
+	authErr, capErr *types.AgentError, createErr, envVarErr, uploadErr, deployErr, waitErr, validateErr,
 	expectedErr error) {
 
 	bundler, err := bundles.NewBundler(s.cwd, bundles.NewManifest(), nil, s.log)

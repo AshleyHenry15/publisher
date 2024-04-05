@@ -8,6 +8,7 @@ import (
 
 	"github.com/rstudio/connect-client/internal/clients/connect/server_settings"
 	"github.com/rstudio/connect-client/internal/config"
+	"github.com/rstudio/connect-client/internal/types"
 	"github.com/rstudio/connect-client/internal/util/utiltest"
 	"github.com/stretchr/testify/suite"
 )
@@ -23,7 +24,7 @@ func TestCapabilitiesSuite(t *testing.T) {
 func (s *CapabilitiesSuite) TestEmptyConfig() {
 	a := allSettings{}
 	cfg := &config.Config{}
-	s.NoError(a.checkConfig(cfg))
+	s.Nil(a.checkConfig(cfg))
 }
 
 func makePythonConfig(version string) *config.Config {
@@ -43,11 +44,14 @@ func (s *CapabilitiesSuite) TestCheckMatchingPython() {
 			},
 		},
 	}
-	s.NoError(a.checkConfig(makePythonConfig("3.10.1")))
-	s.NoError(a.checkConfig(makePythonConfig("3.11.1")))
+	s.Nil(a.checkConfig(makePythonConfig("3.10.1")))
+	s.Nil(a.checkConfig(makePythonConfig("3.11.1")))
 	err := a.checkConfig(makePythonConfig("3.9.1"))
 	s.NotNil(err)
-	s.ErrorContains(err, "Python 3.9 is not available on the server")
+	s.Equal(err.Code, types.PythonNotAvailableCode)
+	s.ErrorIs(err.Err, errPythonNotAvailable)
+	s.Equal("3.9", err.Data["requested"])
+	s.Equal([]string{"3.10.1", "3.11.2"}, err.Data["available"])
 }
 
 func makeMinMaxProcs(min, max int32) *config.Config {
@@ -71,12 +75,48 @@ func (s *CapabilitiesSuite) TestMinMaxProcs() {
 			MaxProcessesLimit: 20,
 		},
 	}
-	s.NoError(a.checkConfig(makeMinMaxProcs(1, 5)))
-	s.NoError(a.checkConfig(makeMinMaxProcs(5, 5)))
-	s.ErrorContains(a.checkConfig(makeMinMaxProcs(11, 11)), "min-processes value of 11 is higher than configured maximum of 10 on this server")
-	s.ErrorContains(a.checkConfig(makeMinMaxProcs(0, 21)), "max-processes value of 21 is higher than configured maximum of 20 on this server")
-	s.ErrorContains(a.checkConfig(makeMinMaxProcs(5, 1)), "min-processes value of 5 is higher than max-processes value of 1")
-	s.ErrorContains(a.checkConfig(makeMinMaxProcs(-1, 5)), "min-processes value cannot be less than 0")
+	s.Nil(a.checkConfig(makeMinMaxProcs(1, 5)))
+	s.Nil(a.checkConfig(makeMinMaxProcs(5, 5)))
+
+	err := a.checkConfig(makeMinMaxProcs(11, 11))
+	s.Equal(types.ValueOutOfRangeCode, err.Code)
+	s.ErrorIs(err.Err, errValueOutOfRange)
+	s.Equal(types.ErrorData{
+		"key":   "min-processes",
+		"value": 11.0,
+		"min":   0.0,
+		"max":   10.0,
+	}, err.Data)
+
+	err = a.checkConfig(makeMinMaxProcs(0, 21))
+	s.Equal(types.ValueOutOfRangeCode, err.Code)
+	s.ErrorIs(err.Err, errValueOutOfRange)
+	s.Equal(types.ErrorData{
+		"key":   "max-processes",
+		"value": 21.0,
+		"min":   0.0,
+		"max":   20.0,
+	}, err.Data)
+
+	err = a.checkConfig(makeMinMaxProcs(5, 1))
+	s.Equal(types.MinGreaterThanMaxCode, err.Code)
+	s.ErrorIs(err.Err, errValueOutOfRange)
+	s.Equal(types.ErrorData{
+		"key":    "min-processes",
+		"value":  5.0,
+		"maxKey": "max-processes",
+		"max":    1.0,
+	}, err.Data)
+
+	err = a.checkConfig(makeMinMaxProcs(-1, 5))
+	s.Equal(types.ValueOutOfRangeCode, err.Code)
+	s.ErrorIs(err.Err, errValueOutOfRange)
+	s.Equal(types.ErrorData{
+		"key":   "min-processes",
+		"value": -1.0,
+		"min":   0.0,
+		"max":   10.0,
+	}, err.Data)
 }
 
 func (s *CapabilitiesSuite) TestRuntimeNonWorker() {
@@ -87,7 +127,9 @@ func (s *CapabilitiesSuite) TestRuntimeNonWorker() {
 		},
 	}
 	a := allSettings{}
-	s.ErrorIs(a.checkConfig(cfg), errRuntimeSettingsForStaticContent)
+	err := a.checkConfig(cfg)
+	s.Equal(types.RuntimeSettingsForStaticContentCode, err.Code)
+	s.ErrorIs(err.Err, errRuntimeSettingsForStaticContent)
 }
 
 func (s *CapabilitiesSuite) TestRunAs() {
@@ -108,8 +150,14 @@ func (s *CapabilitiesSuite) TestRunAs() {
 			},
 		},
 	}
-	s.NoError(adminSettings.checkConfig(cfg))
-	s.ErrorContains(publisherSettings.checkConfig(cfg), "run-as requires administrator privileges")
+	s.Nil(adminSettings.checkConfig(cfg))
+
+	err := publisherSettings.checkConfig(cfg)
+	s.Equal(types.AdminPrivilegesRequiredCode, err.Code)
+	s.ErrorIs(err.Err, errAdminPrivilegesRequired)
+	s.Equal(types.ErrorData{
+		"key": "run-as",
+	}, err.Data)
 }
 
 func (s *CapabilitiesSuite) TestRunAsCurrentUser() {
@@ -135,23 +183,31 @@ func (s *CapabilitiesSuite) TestRunAsCurrentUser() {
 			},
 		},
 	}
-	s.NoError(goodSettings.checkConfig(&cfg))
+	s.Nil(goodSettings.checkConfig(&cfg))
 
 	noLicense := goodSettings
 	noLicense.general.License.CurrentUserExecution = false
-	s.ErrorIs(noLicense.checkConfig(&cfg), errCurrentUserExecutionNotLicensed)
+	err := noLicense.checkConfig(&cfg)
+	s.ErrorIs(err.Err, errCurrentUserExecutionNotLicensed)
 
 	noConfig := goodSettings
 	noConfig.application.RunAsCurrentUser = false
-	s.ErrorIs(noConfig.checkConfig(&cfg), errCurrentUserExecutionNotConfigured)
+	err = noConfig.checkConfig(&cfg)
+	s.Equal(types.CurrentUserExecutionNotConfiguredCode, err.Code)
+	s.ErrorIs(err.Err, errCurrentUserExecutionNotConfigured)
 
 	notAdmin := goodSettings
 	notAdmin.user.UserRole = AuthRolePublisher
-	s.ErrorContains(notAdmin.checkConfig(&cfg), "run-as-current-user requires administrator privileges")
+	err = notAdmin.checkConfig(&cfg)
+	s.Equal(types.AdminPrivilegesRequiredCode, err.Code)
+	s.ErrorIs(err.Err, errAdminPrivilegesRequired)
+	s.Equal(types.ErrorData{"key": "run-as-current-user"}, err.Data)
 
 	notAnApp := cfg
 	notAnApp.Type = config.ContentTypeJupyterNotebook
-	s.ErrorIs(goodSettings.checkConfig(&notAnApp), errOnlyAppsCanRACU)
+	err = goodSettings.checkConfig(&notAnApp)
+	s.Equal(types.OnlyAppsCanRACUCode, err.Code)
+	s.ErrorIs(err.Err, errOnlyAppsCanRACU)
 }
 
 func (s *CapabilitiesSuite) TestAPILicense() {
@@ -173,9 +229,15 @@ func (s *CapabilitiesSuite) TestAPILicense() {
 	cfg := &config.Config{
 		Type: config.ContentTypePythonFlask,
 	}
-	s.NoError(allowed.checkConfig(cfg))
-	s.ErrorIs(missing.checkConfig(cfg), errAPIsNotLicensed)
-	s.ErrorIs(notAllowed.checkConfig(cfg), errAPIsNotLicensed)
+	s.Nil(allowed.checkConfig(cfg))
+
+	err := missing.checkConfig(cfg)
+	s.ErrorIs(err.Err, errAPIsNotLicensed)
+	s.Equal(types.APIsNotLicensedCode, err.Code)
+
+	err = notAllowed.checkConfig(cfg)
+	s.ErrorIs(err.Err, errAPIsNotLicensed)
+	s.Equal(types.APIsNotLicensedCode, err.Code)
 }
 
 func (s *CapabilitiesSuite) TestFieldLengths() {
@@ -184,7 +246,9 @@ func (s *CapabilitiesSuite) TestFieldLengths() {
 	cfg := &config.Config{
 		Description: tooLong,
 	}
-	s.ErrorIs(a.checkConfig(cfg), errDescriptionTooLong)
+	err := a.checkConfig(cfg)
+	s.Equal(types.DescriptionTooLongCode, err.Code)
+	s.ErrorIs(err.Err, errDescriptionTooLong)
 }
 
 func (s *CapabilitiesSuite) TestKubernetesEnablement() {
@@ -209,23 +273,31 @@ func (s *CapabilitiesSuite) TestKubernetesEnablement() {
 			},
 		},
 	}
-	s.NoError(goodSettings.checkConfig(&cfg))
+	s.Nil(goodSettings.checkConfig(&cfg))
 
 	noLicense := goodSettings
 	noLicense.general.License.LauncherEnabled = false
-	s.ErrorIs(noLicense.checkConfig(&cfg), errKubernetesNotLicensed)
+	err := noLicense.checkConfig(&cfg)
+	s.Equal(types.KubernetesNotLicensedCode, err.Code)
+	s.ErrorIs(err.Err, errKubernetesNotLicensed)
 
 	noConfig := goodSettings
 	noConfig.general.ExecutionType = server_settings.ExecutionTypeLocal
-	s.ErrorIs(noConfig.checkConfig(&cfg), errKubernetesNotConfigured)
+	err = noConfig.checkConfig(&cfg)
+	s.Equal(types.KubernetesNotConfiguredCode, err.Code)
+	s.ErrorIs(err.Err, errKubernetesNotConfigured)
 
 	noImageSelection := goodSettings
 	noImageSelection.general.DefaultImageSelectionEnabled = false
-	s.ErrorIs(noImageSelection.checkConfig(&cfg), errImageSelectionNotEnabled)
+	err = noImageSelection.checkConfig(&cfg)
+	s.Equal(types.ImageSelectionNotEnabledCode, err.Code)
+	s.ErrorIs(err.Err, errImageSelectionNotEnabled)
 
 	noAdmin := goodSettings
 	noAdmin.user.UserRole = AuthRolePublisher
-	s.ErrorContains(noAdmin.checkConfig(&cfg), "service-account-name requires administrator privileges")
+	err = noAdmin.checkConfig(&cfg)
+	s.Equal(types.AdminPrivilegesRequiredCode, err.Code)
+	s.ErrorIs(err.Err, errAdminPrivilegesRequired)
 }
 
 func makeCpuRequestLimit(req, limit float64) *config.Config {
@@ -278,14 +350,54 @@ func (s *CapabilitiesSuite) TestKubernetesRuntimeCPU() {
 		MaxCPURequest: 3.0,
 		MaxCPULimit:   4.0,
 	}
-	s.NoError(a.checkConfig(makeCpuRequestLimit(1.0, 2.0)))
-	s.NoError(a.checkConfig(makeCpuRequestLimit(3.0, 3.0)))
-	s.NoError(a.checkConfig(makeCpuRequestLimit(3.0, 0.0)))
-	s.ErrorContains(a.checkConfig(makeCpuRequestLimit(-1.0, 2.0)), "cpu-request value cannot be less than 0")
-	s.ErrorContains(a.checkConfig(makeCpuRequestLimit(1.0, -2.0)), "cpu-limit value cannot be less than 0")
-	s.ErrorContains(a.checkConfig(makeCpuRequestLimit(4.0, 4.0)), "cpu-request value of 4.000000 is higher than configured maximum of 3.000000 on this server")
-	s.ErrorContains(a.checkConfig(makeCpuRequestLimit(1.0, 10.0)), "cpu-limit value of 10.000000 is higher than configured maximum of 4.000000 on this server")
-	s.ErrorContains(a.checkConfig(makeCpuRequestLimit(3.0, 2.0)), "cpu-request value of 3.000000 is higher than cpu-limit value of 2.000000")
+	s.Nil(a.checkConfig(makeCpuRequestLimit(1.0, 2.0)))
+	s.Nil(a.checkConfig(makeCpuRequestLimit(3.0, 3.0)))
+	s.Nil(a.checkConfig(makeCpuRequestLimit(3.0, 0.0)))
+
+	err := a.checkConfig(makeCpuRequestLimit(-1.0, 2.0))
+	s.ErrorIs(err.Err, errValueOutOfRange)
+	s.Equal(types.ErrorData{
+		"key":   "cpu-request",
+		"value": -1.0,
+		"min":   0.0,
+		"max":   3.0,
+	}, err.Data)
+
+	err = a.checkConfig(makeCpuRequestLimit(1.0, -2.0))
+	s.ErrorIs(err.Err, errValueOutOfRange)
+	s.Equal(types.ErrorData{
+		"key":   "cpu-limit",
+		"value": -2.0,
+		"min":   0.0,
+		"max":   4.0,
+	}, err.Data)
+
+	err = a.checkConfig(makeCpuRequestLimit(4.0, 4.0))
+	s.ErrorIs(err.Err, errValueOutOfRange)
+	s.Equal(types.ErrorData{
+		"key":   "cpu-request",
+		"value": 4.0,
+		"min":   0.0,
+		"max":   3.0,
+	}, err.Data)
+
+	err = a.checkConfig(makeCpuRequestLimit(1.0, 10.0))
+	s.ErrorIs(err.Err, errValueOutOfRange)
+	s.Equal(types.ErrorData{
+		"key":   "cpu-limit",
+		"value": 10.0,
+		"min":   0.0,
+		"max":   4.0,
+	}, err.Data)
+
+	err = a.checkConfig(makeCpuRequestLimit(3.0, 2.0))
+	s.ErrorIs(err.Err, errValueOutOfRange)
+	s.Equal(types.ErrorData{
+		"key":    "cpu-request",
+		"value":  3.0,
+		"maxKey": "cpu-limit",
+		"max":    2.0,
+	}, err.Data)
 }
 
 func (s *CapabilitiesSuite) TestKubernetesRuntimeNoConfiguredLimits() {
@@ -296,7 +408,7 @@ func (s *CapabilitiesSuite) TestKubernetesRuntimeNoConfiguredLimits() {
 		MaxCPURequest: 0.0,
 		MaxCPULimit:   0.0,
 	}
-	s.NoError(a.checkConfig(makeCpuRequestLimit(10.0, 10.0)))
+	s.Nil(a.checkConfig(makeCpuRequestLimit(10.0, 10.0)))
 }
 
 func (s *CapabilitiesSuite) TestKubernetesRuntimeMemory() {
@@ -307,14 +419,54 @@ func (s *CapabilitiesSuite) TestKubernetesRuntimeMemory() {
 		MaxMemoryRequest: 3000,
 		MaxMemoryLimit:   4000,
 	}
-	s.NoError(a.checkConfig(makeMemoryRequestLimit(1000, 2000)))
-	s.NoError(a.checkConfig(makeMemoryRequestLimit(3000, 3000)))
-	s.NoError(a.checkConfig(makeMemoryRequestLimit(3000, 0)))
-	s.ErrorContains(a.checkConfig(makeMemoryRequestLimit(-1000, 2000)), "memory-request value cannot be less than 0")
-	s.ErrorContains(a.checkConfig(makeMemoryRequestLimit(1000, -2000)), "memory-limit value cannot be less than 0")
-	s.ErrorContains(a.checkConfig(makeMemoryRequestLimit(4000, 4000)), "memory-request value of 4000 is higher than configured maximum of 3000 on this server")
-	s.ErrorContains(a.checkConfig(makeMemoryRequestLimit(1000, 10000)), "memory-limit value of 10000 is higher than configured maximum of 4000 on this server")
-	s.ErrorContains(a.checkConfig(makeMemoryRequestLimit(3000, 2000)), "memory-request value of 3000 is higher than memory-limit value of 2000")
+	s.Nil(a.checkConfig(makeMemoryRequestLimit(1000, 2000)))
+	s.Nil(a.checkConfig(makeMemoryRequestLimit(3000, 3000)))
+	s.Nil(a.checkConfig(makeMemoryRequestLimit(3000, 0)))
+
+	err := a.checkConfig(makeMemoryRequestLimit(-1000, 2000))
+	s.ErrorIs(err.Err, errValueOutOfRange)
+	s.Equal(types.ErrorData{
+		"key":   "memory-request",
+		"value": float64(-1000),
+		"min":   float64(0),
+		"max":   float64(3000),
+	}, err.Data)
+
+	err = a.checkConfig(makeMemoryRequestLimit(1000, -2000))
+	s.ErrorIs(err.Err, errValueOutOfRange)
+	s.Equal(types.ErrorData{
+		"key":   "memory-limit",
+		"value": float64(-2000),
+		"min":   float64(0),
+		"max":   float64(4000),
+	}, err.Data)
+
+	err = a.checkConfig(makeMemoryRequestLimit(4000, 4000))
+	s.ErrorIs(err.Err, errValueOutOfRange)
+	s.Equal(types.ErrorData{
+		"key":   "memory-request",
+		"value": float64(4000),
+		"min":   float64(0),
+		"max":   float64(3000),
+	}, err.Data)
+
+	err = a.checkConfig(makeMemoryRequestLimit(1000, 10000))
+	s.ErrorIs(err.Err, errValueOutOfRange)
+	s.Equal(types.ErrorData{
+		"key":   "memory-limit",
+		"value": float64(10000),
+		"min":   float64(0),
+		"max":   float64(4000),
+	}, err.Data)
+
+	err = a.checkConfig(makeMemoryRequestLimit(3000, 2000))
+	s.ErrorIs(err.Err, errValueOutOfRange)
+	s.Equal(types.ErrorData{
+		"key":    "memory-request",
+		"value":  float64(3000),
+		"maxKey": "memory-limit",
+		"max":    float64(2000),
+	}, err.Data)
 }
 
 func (s *CapabilitiesSuite) TestKubernetesGPULimits() {
@@ -323,9 +475,24 @@ func (s *CapabilitiesSuite) TestKubernetesGPULimits() {
 		MaxAMDGPULimit:    1,
 		MaxNvidiaGPULimit: 2,
 	}
-	s.NoError(a.checkConfig(makeGPURequest(0, 1)))
-	s.NoError(a.checkConfig(makeGPURequest(1, 0)))
-	s.NoError(a.checkConfig(makeGPURequest(1, 1)))
-	s.ErrorContains(a.checkConfig(makeGPURequest(5, 0)), "amd-gpu-limit value of 5 is higher than configured maximum of 1 on this server")
-	s.ErrorContains(a.checkConfig(makeGPURequest(0, 5)), "nvidia-gpu-limit value of 5 is higher than configured maximum of 2 on this server")
+	s.Nil(a.checkConfig(makeGPURequest(0, 1)))
+	s.Nil(a.checkConfig(makeGPURequest(1, 0)))
+	s.Nil(a.checkConfig(makeGPURequest(1, 1)))
+
+	err := a.checkConfig(makeGPURequest(5, 0))
+	s.ErrorIs(err.Err, errValueOutOfRange)
+	s.Equal(err.Data, types.ErrorData{
+		"key":   "amd-gpu-limit",
+		"value": float64(5),
+		"min":   float64(0),
+		"max":   float64(1),
+	})
+	err = a.checkConfig(makeGPURequest(0, 5))
+	s.ErrorIs(err.Err, errValueOutOfRange)
+	s.Equal(err.Data, types.ErrorData{
+		"key":   "nvidia-gpu-limit",
+		"value": float64(5),
+		"min":   float64(0),
+		"max":   float64(2),
+	})
 }
