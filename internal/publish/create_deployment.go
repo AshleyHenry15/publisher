@@ -29,7 +29,7 @@ func (p *defaultPublisher) createDeployment(client connect.APIClient, log loggin
 
 	contentID, err := client.CreateDeployment(&connect.ConnectContent{}, log)
 	if err != nil {
-		return "", types.OperationError(op, err)
+		return "", types.AsAgentErrForOperation(op, err)
 	}
 
 	log.Info("Created deployment", "content_id", contentID)

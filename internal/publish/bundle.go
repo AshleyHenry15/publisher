@@ -37,18 +37,18 @@ func (p *defaultPublisher) createAndUploadBundle(
 	prepareLog.Info("Preparing files")
 	bundleFile, err := os.CreateTemp("", "bundle-*.tar.gz")
 	if err != nil {
-		return "", types.OperationError(op, err)
+		return "", types.AsAgentErrForOperation(op, err)
 	}
 	defer os.Remove(bundleFile.Name())
 	defer bundleFile.Close()
 	manifest, err := bundler.CreateBundle(bundleFile)
 	if err != nil {
-		return "", types.OperationError(op, err)
+		return "", types.AsAgentErrForOperation(op, err)
 	}
 
 	_, err = bundleFile.Seek(0, io.SeekStart)
 	if err != nil {
-		return "", types.OperationError(op, err)
+		return "", types.AsAgentErrForOperation(op, err)
 	}
 	prepareLog.Info("Done preparing files", "filename", bundleFile.Name())
 	p.emitter.Emit(events.New(op, events.SuccessPhase, types.NoError, createBundleSuccessData{
@@ -64,7 +64,7 @@ func (p *defaultPublisher) createAndUploadBundle(
 
 	bundleID, err := client.UploadBundle(contentID, bundleFile, log)
 	if err != nil {
-		return "", types.OperationError(op, err)
+		return "", types.AsAgentErrForOperation(op, err)
 	}
 
 	// Update deployment record with new information

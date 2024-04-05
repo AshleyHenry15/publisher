@@ -33,7 +33,7 @@ func (p *defaultPublisher) setEnvVars(
 	}
 	err := client.SetEnvVars(contentID, env, log)
 	if err != nil {
-		return types.OperationError(op, err)
+		return types.AsAgentErrForOperation(op, err)
 	}
 
 	log.Info("Done setting environment variables")

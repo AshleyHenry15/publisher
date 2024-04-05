@@ -21,13 +21,13 @@ func (p *defaultPublisher) checkConfiguration(client connect.APIClient, log logg
 
 	user, err := client.TestAuthentication(log)
 	if err != nil {
-		return types.OperationError(op, err)
+		return types.AsAgentErrForOperation(op, err)
 	}
 	log.Info("Publishing with credentials", "username", user.Username, "email", user.Email)
 
 	err = client.CheckCapabilities(p.Dir, p.Config, log)
 	if err != nil {
-		return types.OperationError(op, err)
+		return types.AsAgentErrForOperation(op, err)
 	}
 
 	log.Info("Configuration OK")

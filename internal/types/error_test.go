@@ -20,7 +20,7 @@ func TestErrorSuite(t *testing.T) {
 
 func (s *ErrorSuite) TestError() {
 	err := errors.New("an error occurred")
-	agentErr := OperationError(Operation("testOp"), err)
+	agentErr := AsAgentErrForOperation(Operation("testOp"), err)
 	s.Equal(err.Error(), agentErr.Error())
 }
 
@@ -53,6 +53,6 @@ func (s *ErrorSuite) TestAsAgentError() {
 	err := errors.New("an error occurred")
 	s.Equal(err, AsAgentError(err).Err)
 
-	agentErr := OperationError(Operation("testOp"), err)
+	agentErr := AsAgentErrForOperation(Operation("testOp"), err)
 	s.Equal(agentErr, AsAgentError(agentErr))
 }

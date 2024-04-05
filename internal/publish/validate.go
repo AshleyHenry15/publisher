@@ -30,7 +30,7 @@ func (p *defaultPublisher) validateContent(
 
 	err := client.ValidateDeployment(contentID, log)
 	if err != nil {
-		return types.OperationError(op, err)
+		return types.AsAgentErrForOperation(op, err)
 	}
 
 	log.Info("Done validating deployment")

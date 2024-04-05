@@ -46,7 +46,7 @@ func (p *defaultPublisher) updateContent(
 			}
 			return types.NewAgentError(types.DeploymentNotFoundCode, err, details)
 		} else {
-			return types.OperationError(op, err)
+			return types.AsAgentErrForOperation(op, err)
 		}
 	}
 

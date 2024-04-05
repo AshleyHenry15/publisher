@@ -23,7 +23,7 @@ func TestErrorsSuite(t *testing.T) {
 
 func (s *ErrorsSuite) TestGoError() {
 	err := errors.New("an error occurred")
-	agentErr := types.OperationError(PublishRestoreREnvOp, err)
+	agentErr := types.AsAgentErrForOperation(PublishRestoreREnvOp, err)
 	event := NewErrorEvent(agentErr)
 
 	s.NotEqual(time.Time{}, event.Time)
@@ -36,7 +36,7 @@ func (s *ErrorsSuite) TestGoError() {
 func (s *ErrorsSuite) TestGoErrorWithAttrs() {
 	_, err := os.Stat("/nonexistent")
 	s.NotNil(err)
-	agentErr := types.OperationError(PublishRestoreREnvOp, err)
+	agentErr := types.AsAgentErrForOperation(PublishRestoreREnvOp, err)
 	event := NewErrorEvent(agentErr)
 
 	s.NotEqual(time.Time{}, event.Time)
@@ -54,7 +54,7 @@ func (s *ErrorsSuite) TestErrorDetails() {
 	returnedErr := types.NewAgentError(types.ServerErrorCode, err, details)
 
 	// in the caller
-	agentErr := types.OperationError(PublishRestorePythonEnvOp, returnedErr)
+	agentErr := types.AsAgentErrForOperation(PublishRestorePythonEnvOp, returnedErr)
 	event := NewErrorEvent(agentErr)
 
 	s.NotEqual(time.Time{}, event.Time)
@@ -72,7 +72,7 @@ func (s *ErrorsSuite) TestErrorObjectAndDetails() {
 	returnedErr := types.NewAgentError(types.ServerErrorCode, err, details)
 
 	// in the caller
-	agentErr := types.OperationError(PublishRestorePythonEnvOp, returnedErr)
+	agentErr := types.AsAgentErrForOperation(PublishRestorePythonEnvOp, returnedErr)
 	event := NewErrorEvent(agentErr)
 
 	s.NotEqual(time.Time{}, event.Time)

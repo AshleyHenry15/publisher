@@ -28,7 +28,7 @@ func (p *defaultPublisher) deployBundle(
 
 	taskID, err := client.DeployBundle(contentID, bundleID, log)
 	if err != nil {
-		return "", types.OperationError(op, err)
+		return "", types.AsAgentErrForOperation(op, err)
 	}
 
 	log.Info("Activation requested")

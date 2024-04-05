@@ -283,7 +283,7 @@ func (p *defaultPublisher) publishWithClient(
 	}
 	err = p.createDeploymentRecord(contentID, account, log)
 	if err != nil {
-		return types.OperationError(events.PublishCreateNewDeploymentOp, err)
+		return types.AsAgentErrForOperation(events.PublishCreateNewDeploymentOp, err)
 	}
 
 	bundleID, err := p.createAndUploadBundle(client, bundler, contentID, log)

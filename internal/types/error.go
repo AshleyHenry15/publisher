@@ -83,7 +83,7 @@ func (e *AgentError) Error() string {
 	return e.Err.Error()
 }
 
-func OperationError(op Operation, err error) EventableError {
+func AsAgentErrForOperation(op Operation, err error) EventableError {
 	e, ok := err.(EventableError)
 	if !ok {
 		e = NewAgentError(UnknownErrorCode, err, nil)
