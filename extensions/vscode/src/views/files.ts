@@ -19,6 +19,7 @@ import {
 import { getSummaryStringFromError } from "../utils/errors";
 import * as path from "path";
 import { pathSorter } from "../utils/files";
+import { getSelectionState } from "./homeView";
 
 import * as os from "os";
 
@@ -63,7 +64,15 @@ export class FilesTreeDataProvider implements TreeDataProvider<TreeEntries> {
       // first call.
       try {
         const api = await useApi();
-        const response = await api.files.getByConfiguration("default");
+        const selectedConfigName = getSelectionState(
+          this._context,
+        ).configurationName;
+
+        if (selectedConfigName === undefined) {
+          commands.executeCommand("setContext", isEmptyContext, true);
+          return [];
+        }
+        const response = await api.files.getByConfiguration(selectedConfigName);
         const file = response.data;
 
         commands.executeCommand("setContext", isEmptyContext, Boolean(file));
@@ -133,16 +142,13 @@ const resetFileTrees = () => {
   excludedFiles = [];
 };
 
-const buildFileTrees = (
-  file: DeploymentFile,
-  root: Uri,
-) => {
+const buildFileTrees = (file: DeploymentFile, root: Uri) => {
   if (file.isFile) {
     if (file.reason?.exclude === false) {
       const f = new IncludedFile(root, {
         ...file,
         reason: file.reason,
-    });
+      });
       includedFiles.push(f);
     } else {
       const f = new ExcludedFile(root, {
