@@ -6,11 +6,23 @@ source ../content/bundles/${CONTENT}/test/.publisher-env
 CONTENT_PATH='../content/bundles'
 FULL_PATH="${CONTENT_PATH}/${CONTENT}"
 
+setup_file() {
+    # temporary unsupported quarto types
+    quarto_r_content=(
+        "quarto-proj-r-shiny" "quarto-proj-r" "quarto-proj-r-py"
+        "quarty-website-r" "quarto-website-r-py"
+        "quarto-website-r-py-separate-files-deps" "quarto-website-r-deps"
+        "quarto-website-r-py-deps"
+    )
+     if [[ ${quarto_r_content[@]} =~ ${CONTENT} ]]; then
+        cd ${FULL_PATH} && \
+        R -e 'renv::restore(lockfile="renv.lock")' && \
+        cd ../../../bats
+     fi
+}
+
 # helper funciton for deploys
 deploy_assertion() {
-    if [[ ${quarto_r_content[@]} =~ ${CONTENT} ]]; then
-        assert_output --partial "error detecting content type: quarto with knitr engine is not yet supported."
-    else
         assert_success
         assert_output --partial "Test Deployment...                 [OK]"
 
@@ -40,17 +52,12 @@ deploy_assertion() {
             --insecure \
             --data-raw '{"min_processes": 0}' \
             "${CONNECT_SERVER}/__api__/v1/content/${GUID}"
-    fi
 }
 
 init_with_fields() {
     run ${EXE} credentials create bats ${CONNECT_SERVER} ${CONNECT_API_KEY}
     run ${EXE} init -c ${CONTENT} ${FULL_PATH}
-    # init to create default.toml
-    if [[ ${quarto_r_content[@]} =~ ${CONTENT} ]]; then
-        assert_output --partial "error detecting content type: quarto with knitr engine is not yet supported."
-    else
-        assert_success
+    assert_success
 
     # add description
     perl -i -pe '$_ .= qq(description =  "'"${CONTENT}"' description"\n) if /title/' ${FULL_PATH}/.posit/publish/${CONTENT}.toml
@@ -67,16 +74,7 @@ runtime.min_processes = 1
 runtime.max_conns_per_process = 5
 runtime.load_factor = 0.8
 " >> ${FULL_PATH}/.posit/publish/${CONTENT}.toml
-    fi
 }
-
-# temporary unsupported quarto types
-quarto_r_content=(
-    "quarto-proj-r-shiny" "quarto-proj-r" "quarto-proj-r-py"
-    "quarty-website-r" "quarto-website-r-py"
-    "quarto-website-r-py-separate-files-deps" "quarto-website-r-deps"
-    "quarto-website-r-py-deps"
-)
 
 quarto_content_types=(
     "quarto" "quarto-static"
@@ -122,13 +120,10 @@ python_content_types=(
 }
 
 @test "check for toml file" {
-    if [[ ${quarto_r_content[@]} =~ ${CONTENT} ]]; then
-        skip
-    else
-        run cat ${FULL_PATH}/.posit/publish/deployments/ci_deploy.toml
-            assert_output --partial "type = '${CONTENT_TYPE}'"
-            assert_output --partial "entrypoint = '${ENTRYPOINT}'"
-    fi
+    run cat ${FULL_PATH}/.posit/publish/deployments/ci_deploy.toml
+        assert_output --partial "type = '${CONTENT_TYPE}'"
+        assert_output --partial "entrypoint = '${ENTRYPOINT}'"
+        assert_output --partial "title = '${TITLE}'"
 }
 
 # verify error for missing requirements file
@@ -147,7 +142,7 @@ the 'publisher requirements create' command."
     fi
 }
 
-teardown_file() {
-    # delete the temp files
-    rm -rf ${FULL_PATH}/.posit*
-}
+# teardown_file() {
+#     # delete the temp files
+#     rm -rf ${FULL_PATH}/.posit*
+# }
