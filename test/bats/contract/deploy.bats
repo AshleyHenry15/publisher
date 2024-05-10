@@ -37,13 +37,16 @@ deploy_assertion() {
             "${CONNECT_SERVER}/__api__/v1/content/${GUID}"
         assert_output --partial "\"app_mode\":\"${APP_MODE}\""
         assert_output --partial "\"description\":\"${CONTENT} description\""
-        assert_output --partial "\"read_timeout\":30"
-        assert_output --partial "\"init_timeout\":35"
-        assert_output --partial "\"idle_timeout\":40"
-        assert_output --partial "\"max_processes\":2"
-        assert_output --partial "\"min_processes\":1"
-        assert_output --partial "\"max_conns_per_process\":5"
-        assert_output --partial "\"load_factor\":0.8"
+        if [[ "r-plumber" != ${CONTENT_TYPE} ]]; then
+            assert_output --partial "\"connection_timeout\":25"
+            assert_output --partial "\"read_timeout\":30"
+            assert_output --partial "\"init_timeout\":35"
+            assert_output --partial "\"idle_timeout\":40"
+            assert_output --partial "\"max_processes\":2"
+            assert_output --partial "\"min_processes\":1"
+            assert_output --partial "\"max_conns_per_process\":5"
+            assert_output --partial "\"load_factor\":0.8"
+        fi
 
         # reset min_processes to 0
         run curl --silent --show-error -L --max-redirs 0 --fail \
@@ -62,8 +65,9 @@ init_with_fields() {
     # add description
     perl -i -pe '$_ .= qq(description =  "'"${CONTENT}"' description"\n) if /title/' ${FULL_PATH}/.posit/publish/${CONTENT}.toml
 
-    # add Connect runtime fields
-    echo "
+    # add Connect runtime fields for interactive content
+    if [[ "r-plumber" != ${CONTENT_TYPE} ]]; then
+            echo "
 [connect]
 runtime.connection_timeout = 25
 runtime.read_timeout = 30
@@ -74,6 +78,7 @@ runtime.min_processes = 1
 runtime.max_conns_per_process = 5
 runtime.load_factor = 0.8
 " >> ${FULL_PATH}/.posit/publish/${CONTENT}.toml
+    fi
 }
 
 quarto_content_types=(
@@ -142,7 +147,10 @@ the 'publisher requirements create' command."
     fi
 }
 
-# teardown_file() {
-#     # delete the temp files
-#     rm -rf ${FULL_PATH}/.posit*
-# }
+teardown_file() {
+    # delete the bats credentials after each run
+    CREDS_GUID="$(${EXE} credentials list | jq -r '.[] | select(.name == "bats") | .guid')"
+    ${EXE} credentials delete ${CREDS_GUID}
+    # delete the temp files
+    rm -rf ${FULL_PATH}/.posit*
+}
