@@ -37,6 +37,7 @@ jobs:
           path: bin
       - uses: actions/checkout@v4
         with:
+          ref: kg-publisher
           repository: rstudio/connect-content
           path: "test/content"
           sparse-checkout: bundles
