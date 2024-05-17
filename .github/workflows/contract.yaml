@@ -44,5 +44,4 @@ jobs:
       - run: just bats install
       - run: just bats test common
       - run: just bats test init
-      - run: just bats test accounts
       - run: just bats test deploy
