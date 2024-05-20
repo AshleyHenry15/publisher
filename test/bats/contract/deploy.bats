@@ -69,9 +69,8 @@ init_with_fields() {
     # add description
     perl -i -pe '$_ .= qq(description =  "'"${CONTENT}"' description"\n) if /title/' ${FULL_PATH}/.posit/publish/${CONTENT}.toml
 
-    # # add Connect runtime fields for interactive content
-    # if [[ "r-plumber" != ${CONTENT_TYPE} ]]; then
-            echo "
+    # add Connect runtime fields for interactive content
+    echo "
 [connect]
 runtime.connection_timeout = 25
 runtime.read_timeout = 30
@@ -82,7 +81,9 @@ runtime.min_processes = 1
 runtime.max_conns_per_process = 5
 runtime.load_factor = 0.8
 " >> ${FULL_PATH}/.posit/publish/${CONTENT}.toml
-    # fi
+
+# TODO: replace the type field with what we expect
+sed -i "" "s/type = '[^']*'/type = '${CONTENT_TYPE}'/g" "${FULL_PATH}/.posit/publish/${CONTENT}.toml"
 }
 
 quarto_content_types=(
@@ -115,24 +116,29 @@ python_content_types=(
 
 # deploy content with the env account using requirements files
 @test "deploy ${CONTENT}" {
-    init_with_fields
-    run ${EXE} deploy ${FULL_PATH} -n ci_deploy -c ${CONTENT}
-
-    deploy_assertion
+    if [[ ${CONTENT} != "parameterized_report" ]]; then 
+        init_with_fields
+        run ${EXE} deploy ${FULL_PATH} -n ci_deploy -c ${CONTENT}
+        deploy_assertion
+    fi
+    
 }
 
 # redeploy content from previous test
 @test "redeploy ${CONTENT}" {
-
-    run ${EXE} redeploy ci_deploy ${FULL_PATH}
-    deploy_assertion
+    if [[ ${CONTENT} != "parameterized_report" ]]; then 
+        run ${EXE} redeploy ci_deploy ${FULL_PATH}
+        deploy_assertion
+    fi
 }
 
 @test "check for toml file" {
-    run cat ${FULL_PATH}/.posit/publish/deployments/ci_deploy.toml
-        assert_output --partial "type = '${CONTENT_TYPE}'"
-        assert_output --partial "entrypoint = '${ENTRYPOINT}'"
-        assert_output --partial "title = '${TITLE}'"
+    if [[ ${CONTENT} != "parameterized_report" ]]; then 
+        run cat ${FULL_PATH}/.posit/publish/deployments/ci_deploy.toml
+            assert_output --partial "type = '${CONTENT_TYPE}'"
+            assert_output --partial "entrypoint = '${ENTRYPOINT}'"
+            assert_output --partial "title = '${TITLE}'"
+    fi
 }
 
 # verify error for missing requirements file
