@@ -83,7 +83,7 @@ runtime.load_factor = 0.8
 " >> ${FULL_PATH}/.posit/publish/${CONTENT}.toml
 
 # TODO: replace the type field with what we expect
-sed -i "" "s/type = '[^']*'/type = '${CONTENT_TYPE}'/g" "${FULL_PATH}/.posit/publish/${CONTENT}.toml"
+sed -i"" -e "s/type = '[^']*'/type = 'r-plumber'/g" "${FULL_PATH}/.posit/publish/${CONTENT}.toml"
 }
 
 quarto_content_types=(
