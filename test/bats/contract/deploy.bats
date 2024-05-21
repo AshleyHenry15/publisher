@@ -7,11 +7,13 @@ CONTENT_PATH='../content/bundles'
 FULL_PATH="${CONTENT_PATH}/${CONTENT}"
 
 setup_file() {
-    # temporary unsupported quarto types
     r_content=(
-        "shiny" "rmd" "plumber" 
+        "shiny" "rmd" "plumber"
     )
-     if [[ ${r_content[@]} =~ ${CONTENT_TYPE} ]]; then
+    quarto_engine=(
+        "markdown" "knitr"
+    )
+     if [[ ${r_content[@]} =~ ${CONTENT_TYPE} || ${quarto_engine[@]} =~ ${QUARTO_ENGINE} ]]; then
         cd ${FULL_PATH} && \
         R -e 'renv::restore()' && \
         cd ../../../bats
