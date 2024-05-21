@@ -159,6 +159,7 @@ the 'publisher requirements create' command."
 }
 
 teardown_file() {
+    unset QUARTO_ENGINE
     # delete the bats credentials after each run
     CREDS_GUID="$(${EXE} credentials list | jq -r '.[] | select(.name == "bats") | .guid')"
     ${EXE} credentials delete ${CREDS_GUID}

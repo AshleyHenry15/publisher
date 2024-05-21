@@ -44,13 +44,8 @@ jobs:
           sparse-checkout-cone-mode: false
           token: ${{ secrets.CONNECT_PAT }}
       - name: Install deps on ubuntu
-        run: sudo apt-get install \
-          libcurl4-openssl-dev \
-          libsodium-dev \
-          libfontconfig1-dev \
-          libfribidi-dev \
-          libfontconfig1-dev \
-          libpng-dev && \
+        run:
+          sudo apt-get install libcurl4-openssl-dev libsodium-dev libfontconfig1-dev libfribidi-dev libfontconfig1-dev libpng-dev && \
           R -e "install.packages('renv', repos='https://packagemanager.posit.co/cran/latest')"
         if: matrix.runs-on == 'ubuntu-latest'
       - name: Install deps on windows
