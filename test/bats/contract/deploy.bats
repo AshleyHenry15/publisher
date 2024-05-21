@@ -8,15 +8,12 @@ FULL_PATH="${CONTENT_PATH}/${CONTENT}"
 
 setup_file() {
     # temporary unsupported quarto types
-    quarto_r_content=(
-        "quarto-proj-r-shiny" "quarto-proj-r" "quarto-proj-r-py"
-        "quarty-website-r" "quarto-website-r-py"
-        "quarto-website-r-py-separate-files-deps" "quarto-website-r-deps"
-        "quarto-website-r-py-deps"
+    r_content=(
+        "shiny" "rmd" "plumber" 
     )
-     if [[ ${quarto_r_content[@]} =~ ${CONTENT} ]]; then
+     if [[ ${r_content[@]} =~ ${CONTENT_TYPE} ]]; then
         cd ${FULL_PATH} && \
-        R -e 'renv::restore(lockfile="renv.lock")' && \
+        R -e 'renv::restore()' && \
         cd ../../../bats
      fi
 }
