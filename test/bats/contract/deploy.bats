@@ -11,7 +11,7 @@ setup_file() {
         "shiny" "rmd" "plumber"
     )
     quarto_engine=(
-        "markdown" "knitr"
+        "markdown" "knitr" "jupyter', 'knitr"
     )
      if [[ ${r_content[@]} =~ ${CONTENT_TYPE} || ${quarto_engine[@]} =~ ${QUARTO_ENGINE} ]]; then
         cd ${FULL_PATH} && \
