@@ -13,12 +13,12 @@ setup_file() {
     quarto_engine=(
         "markdown" "knitr" "jupyter', 'knitr"
     )
-     if [[ ${r_content[@]} == ${CONTENT_TYPE} || ${quarto_engine[@]} == ${QUARTO_ENGINE} ]]; then
+    if [[ " ${r_content[@]} " =~ " ${CONTENT_TYPE} " || " ${quarto_engine[@]} " =~ " ${QUARTO_ENGINE} " ]]; then
         echo "setup for ${CONTENT}" && \
         cd ${FULL_PATH} && \
         R -e 'renv::restore()' && \
         cd ../../../bats
-     fi
+    fi
 }
 
 # static_content=(
