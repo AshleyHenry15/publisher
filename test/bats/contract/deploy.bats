@@ -11,12 +11,13 @@ setup_file() {
         "shiny" "rmd" "rmd-shiny" "r-plumber" "r-shiny"
     )
     quarto_engine=(
-        "markdown" "knitr" "jupyter', 'knitr"
+        "markdown" "knitr" "jupyter', 'knitr" 
     )
     if [[ " ${r_content[@]} " =~ " ${CONTENT_TYPE} " || " ${quarto_engine[@]} " =~ " ${QUARTO_ENGINE} " ]]; then
         echo "setup for ${CONTENT}" && \
+        echo "quarto engine: ${QUARTO_ENGINE}" && \
         cd ${FULL_PATH} && \
-        R -e 'renv::restore()' && \
+        R -e 'renv::restore()adsfas' && \
         cd ../../../bats
     fi
 }
