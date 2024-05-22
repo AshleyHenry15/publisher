@@ -17,7 +17,7 @@ setup_file() {
         echo "setup for ${CONTENT}" && \
         echo "quarto engine: ${QUARTO_ENGINE}" && \
         cd ${FULL_PATH} && \
-        R -e 'renv::restore()adsfas' && \
+        R -e 'renv::restore()' && \
         cd ../../../bats
     fi
 }
