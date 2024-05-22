@@ -8,7 +8,7 @@ FULL_PATH="${CONTENT_PATH}/${CONTENT}"
 
 setup_file() {
     r_content=(
-        "shiny" "rmd" "plumber"
+        "shiny" "rmd" "rmd-shiny" "r-plumber" "r-shiny"
     )
     quarto_engine=(
         "markdown" "knitr" "jupyter', 'knitr"
