@@ -10,14 +10,14 @@ export async function untitledConfigurationName(): Promise<string> {
   const existingConfigurations = (await api.configurations.getAll()).data;
 
   if (existingConfigurations.length === 0) {
-    return "default";
+    return "configuration-1";
   }
 
-  let id = 0;
+  let id = existingConfigurations.length;
   let defaultName = "";
   do {
     id += 1;
-    const trialName = `Untitled-${id}`;
+    const trialName = `configuration-${id}`;
 
     if (
       !existingConfigurations.find((config) => {
@@ -39,7 +39,7 @@ export function untitledDeploymentName(
     return "deployment-1";
   }
 
-  let id = 0;
+  let id = existingDeploymentNames.length;
   let defaultName = "";
   do {
     id += 1;

@@ -65,7 +65,7 @@ func ListDeploymentFiles(base util.AbsolutePath) ([]util.AbsolutePath, error) {
 
 func UntitledDeploymentName(base util.AbsolutePath) (string, error) {
 	for i := 1; ; i++ {
-		name := fmt.Sprintf("Untitled-%d", i)
+		name := fmt.Sprintf("deployment-%d", i)
 		exists, err := GetDeploymentPath(base, name).Exists()
 		if err != nil {
 			return "", err
