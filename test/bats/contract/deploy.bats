@@ -7,18 +7,11 @@ CONTENT_PATH='../content/bundles'
 FULL_PATH="${CONTENT_PATH}/${CONTENT}"
 
 setup_file() {
-    r_content=(
-        "shiny" "rmd" "rmd-shiny" "r-plumber" "r-shiny"
-    )
-    quarto_engine=(
-        "markdown" "knitr" "jupyter', 'knitr" 
-    )
-    if [[ " ${r_content[@]} " =~ " ${CONTENT_TYPE} " || " ${quarto_engine[@]} " =~ " ${QUARTO_ENGINE} " ]]; then
+   
+    if [[ ${RENV_REQUIRED} == "yes" ]]; then
         echo "setup for ${CONTENT}" && \
         echo "quarto engine: ${QUARTO_ENGINE}" && \
-        cd ${FULL_PATH} && \
-        R -e 'renv::restore()' && \
-        cd ../../../bats
+        (cd ${FULL_PATH} && R -e 'renv::restore()')
     fi
 }
 
