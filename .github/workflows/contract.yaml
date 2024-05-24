@@ -46,9 +46,10 @@ jobs:
       - name: Cache R packages
         uses: actions/cache@v2
         with:
-          path: ${{ env.R_LIBS_USER }}
+          path: ${{ env.HOME }}/.cache/R/renv/
           key: ${{ runner.os }}-r-${{ hashFiles('**/DESCRIPTION') }}
           restore-keys: ${{ runner.os }}-r-
+        if: matrix.runs-on == 'ubuntu-latest'
       - name: Install deps on ubuntu
         run: |
           sudo apt-get install libcurl4-openssl-dev libsodium-dev libfontconfig1-dev libfribidi-dev libfontconfig1-dev libpng-dev
