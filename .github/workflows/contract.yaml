@@ -59,11 +59,6 @@ jobs:
         run: |
           R.exe -e "install.packages('renv', repos='https://packagemanager.posit.co/cran/latest')"
         if: matrix.runs-on == 'windows-latest'
-      - name: Setup tmate session
-        if: matrix.runs-on == 'windows-latest'
-        uses: mxschmitt/action-tmate@v3
-        with:
-          limit-access-to-actor: true
       - name: Install deps on macos
         run: R -e "install.packages('renv', repos='https://packagemanager.posit.co/cran/latest')"
         if: matrix.runs-on == 'macos-latest'
