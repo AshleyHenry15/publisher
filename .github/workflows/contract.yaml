@@ -11,7 +11,8 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        runs-on: [macos-latest, windows-latest, ubuntu-latest]
+        # runs-on: [macos-latest, windows-latest, ubuntu-latest]
+        runs-on: [windows-latest]
     runs-on: ${{ matrix.runs-on }}
     steps:
       - uses: actions/checkout@v4
@@ -59,6 +60,11 @@ jobs:
         run: |
           R.exe -e "install.packages('renv', repos='https://packagemanager.posit.co/cran/latest')"
         if: matrix.runs-on == 'windows-latest'
+      - name: Setup tmate session
+        if: ${{ failure() }}
+        uses: mxschmitt/action-tmate@v3
+        with:
+          limit-access-to-actor: true
       - name: Install deps on macos
         run: R -e "install.packages('renv', repos='https://packagemanager.posit.co/cran/latest')"
         if: matrix.runs-on == 'macos-latest'
