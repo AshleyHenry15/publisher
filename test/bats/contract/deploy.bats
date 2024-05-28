@@ -11,13 +11,10 @@ setup_file() {
     if [[ ${RENV_REQUIRED} == "yes" ]]; then
         echo "setup for ${CONTENT}" && \
         echo "quarto engine: ${QUARTO_ENGINE}" && \
-        (cd ${FULL_PATH} && R -e 'renv::restore()')
+        (cd ${FULL_PATH} && R -e 'renv::restore()') && \
+        (cd ${FULL_PATH} && R -e 'renv::snapshot()')
     fi
 }
-
-# static_content=(
-#         "rmd" "plumber"
-#     )
 
 # helper funciton for deploys
 deploy_assertion() {
