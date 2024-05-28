@@ -8,12 +8,10 @@ jobs:
       FUZZBUCKET_URL: ${{ secrets.FUZZBUCKET_URL }}
       FUZZBUCKET_CREDENTIALS: ${{ secrets.FUZZBUCKET_CREDENTIALS }}
       CI: true
-      CONTENT: quarto-website-r-py
     strategy:
       fail-fast: false
       matrix:
-        # runs-on: [macos-latest, windows-latest, ubuntu-latest]
-        runs-on: [windows-latest]
+        runs-on: [macos-latest, windows-latest, ubuntu-latest]
     runs-on: ${{ matrix.runs-on }}
     steps:
       - uses: actions/checkout@v4
@@ -45,13 +43,6 @@ jobs:
           sparse-checkout: bundles
           sparse-checkout-cone-mode: false
           token: ${{ secrets.CONNECT_PAT }}
-      - name: Cache R packages
-        uses: actions/cache@v2
-        with:
-          path: ${{ env.R_LIBS_USER }}
-          key: ${{ runner.os }}-r-${{ hashFiles('**/DESCRIPTION') }}
-          restore-keys: ${{ runner.os }}-r-
-        if: matrix.runs-on == 'ubuntu-latest'
       - name: Install deps on ubuntu
         run: |
           sudo apt-get install libcurl4-openssl-dev libsodium-dev libfontconfig1-dev libfribidi-dev libfontconfig1-dev libpng-dev
@@ -64,6 +55,22 @@ jobs:
       - name: Install deps on macos
         run: R -e "install.packages('renv', repos='https://packagemanager.posit.co/cran/latest')"
         if: matrix.runs-on == 'macos-latest'
+
+      - name: Cache R packages ubuntu
+        uses: actions/cache@v2
+        with:
+          path: ${{ env.R_LIBS_USER }}
+          key: ${{ runner.os }}-r-${{ hashFiles('**/DESCRIPTION') }}
+          restore-keys: ${{ runner.os }}-r-
+        if: matrix.runs-on == 'ubuntu-latest'
+
+      - name: Cache R packages Windows
+        uses: actions/cache@v2
+        with:
+          path: D:\a\_temp\R-4.3.0-win.exe
+          key: ${{ runner.os }}-r-${{ hashFiles('**/DESCRIPTION') }}
+          restore-keys: ${{ runner.os }}-r-
+        if: matrix.runs-on == 'windows-latest'
 
       - run: chmod -R +x ./bin
       - run: echo "${FUZZBUCKET_SSH_KEY}" > test/bats/fuzzbucket-ssh-key && chmod 600 test/bats/fuzzbucket-ssh-key
