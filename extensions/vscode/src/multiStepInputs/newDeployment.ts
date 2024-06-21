@@ -784,6 +784,7 @@ export async function newDeployment(
     return;
   }
   const state = await collectInputs();
+  let timestamp = new Date().getTime();
 
   // make sure user has not hit escape or moved away from the window
   // before completing the steps. This also serves as a type guard on
@@ -846,7 +847,7 @@ export async function newDeployment(
   // Create the Config File
   let configName: string | undefined;
   try {
-    configName = await untitledConfigurationName();
+    configName = await untitledConfigurationName(timestamp);
     const selectedConfigDetails = configDetails[state.data.entryPoint.index];
     if (!selectedConfigDetails) {
       window.showErrorMessage(
@@ -899,7 +900,7 @@ export async function newDeployment(
     const response = await api.contentRecords.createNew(
       finalCredentialName,
       configName,
-      untitledContentRecordName(contentRecordNames),
+      untitledContentRecordName(contentRecordNames, timestamp),
     );
     newContentRecord = response.data;
   } catch (error: unknown) {

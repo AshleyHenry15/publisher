@@ -5,18 +5,15 @@ import { InputBoxValidationSeverity } from "vscode";
 import { useApi } from "src/api";
 import { isValidFilename } from "src/utils/files";
 
-export async function untitledConfigurationName(): Promise<string> {
+export async function untitledConfigurationName(
+  startingId?: number,
+): Promise<string> {
   const api = await useApi();
   const existingConfigurations = (await api.configurations.getAll()).data;
 
-  if (existingConfigurations.length === 0) {
-    return "configuration-1";
-  }
-
-  let id = 0;
+  let id = startingId || new Date().getTime();
   let defaultName = "";
   do {
-    id += 1;
     const trialName = `configuration-${id}`;
 
     if (
@@ -28,26 +25,24 @@ export async function untitledConfigurationName(): Promise<string> {
     ) {
       defaultName = trialName;
     }
+    id += 1;
   } while (!defaultName);
   return defaultName;
 }
 
 export function untitledContentRecordName(
   existingContentRecordNames: string[],
+  startingId?: number,
 ): string {
-  if (existingContentRecordNames.length === 0) {
-    return "deployment-1";
-  }
-
-  let id = 0;
+  let id = startingId || new Date().getTime();
   let defaultName = "";
   do {
-    id += 1;
     const trialName = `deployment-${id}`;
 
     if (uniqueContentRecordName(trialName, existingContentRecordNames)) {
       defaultName = trialName;
     }
+    id += 1;
   } while (!defaultName);
   return defaultName;
 }
