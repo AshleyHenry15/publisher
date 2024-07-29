@@ -73,7 +73,7 @@ jobs:
       fail-fast: false
       matrix:
         runs-on: [macos-latest, windows-latest, ubuntu-latest]
-
+    runs-on: ${{ matrix.runs-on }}
     steps:
       - uses: actions/checkout@v4
         with:
@@ -109,6 +109,6 @@ jobs:
       # vscode ui tests
       - run: just vscode configure
       - run: just vscode-ui install
-      # each test has to be run independently to not stommp on creds
+      # each test has to be run independently to not stomp on creds
       - run: SPEC_PATH=./test/specs/fastapi.spec.ts WORKSPACE_PATH=../sample-content/fastapi-simple just vscode-ui test
       - run: SPEC_PATH=./test/specs/nested-fastapi.spec.ts WORKSPACE_PATH=../sample-content/ just vscode-ui test
