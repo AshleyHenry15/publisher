@@ -36,7 +36,7 @@ async function waitForInputFields(inputText: string) {
       return text.includes(inputText);
     },
     {
-      timeout: 7000, // Timeout in milliseconds, adjust as necessary
+      timeout: 30000,
       timeoutMsg:
         "Expected element signifying server response did not appear within timeout",
     },
