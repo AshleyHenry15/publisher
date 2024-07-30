@@ -17,14 +17,6 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
 
 describe("VS Code Extension UI Test", () => {
-  let workbench: any;
-  let input: any;
-
-  before(async () => {
-    workbench = await browser.getWorkbench();
-    input = await $(".input");
-  });
-
   it("open extension", async () => {
     await openExtension();
   });
@@ -37,6 +29,8 @@ describe("VS Code Extension UI Test", () => {
   });
 
   it("can create deployment", async () => {
+    let input: any;
+    input = await $(".input");
     await browser.switchToFrame(null);
 
     // set title
