@@ -17,6 +17,12 @@ const connectServer = process.env.CONNECT_SERVER;
 const apiKey = process.env.CONNECT_API_KEY;
 
 describe("Nested Fast API Deployment", () => {
+  let workbench: any;
+
+  before(async () => {
+    workbench = await browser.getWorkbench();
+  });
+
   it("open extension", async () => {
     await openExtension();
   });

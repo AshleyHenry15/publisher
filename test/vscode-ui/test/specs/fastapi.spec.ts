@@ -17,6 +17,12 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
 
 describe("VS Code Extension UI Test", () => {
+  let workbench: any;
+
+  before(async () => {
+    workbench = await browser.getWorkbench();
+  });
+
   it("open extension", async () => {
     await openExtension();
   });
