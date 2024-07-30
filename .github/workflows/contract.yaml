@@ -73,6 +73,12 @@ jobs:
       fail-fast: false
       matrix:
         runs-on: [macos-latest, windows-latest, ubuntu-latest]
+        spec-path:
+          - ./test/specs/fastapi.spec.ts
+          - ./test/specs/nested-fastapi.spec.ts
+        workspace-path:
+          - ../sample-content/fastapi-simple
+          - ../sample-content/
     runs-on: ${{ matrix.runs-on }}
     steps:
       - uses: actions/checkout@v4
@@ -107,8 +113,12 @@ jobs:
       - run: echo "${FUZZBUCKET_SSH_KEY}" > test/fuzzbucket-ssh-key && chmod 600 test/fuzzbucket-ssh-key
 
       # vscode ui tests
+      - run: just package
       - run: just vscode configure
       - run: just vscode-ui install
-      # each test has to be run independently to not stomp on creds
-      - run: SPEC_PATH=./test/specs/fastapi.spec.ts WORKSPACE_PATH=../sample-content/fastapi-simple just vscode-ui test
-      - run: SPEC_PATH=./test/specs/nested-fastapi.spec.ts WORKSPACE_PATH=../sample-content/ just vscode-ui test
+
+      - name: Run tests
+        run: just vscode-ui test
+        env:
+          SPEC_PATH: ${{ matrix.spec-path }}
+          WORKSPACE_PATH: ${{ matrix.workspace-path }}

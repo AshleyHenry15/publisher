@@ -34,7 +34,3 @@ jobs:
     with:
       nightly: true
     secrets: inherit
-
-  # Extensions
-  vscode:
-    uses: ./.github/workflows/vscode.yaml
