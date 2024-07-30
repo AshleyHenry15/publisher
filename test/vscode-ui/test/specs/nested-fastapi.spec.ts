@@ -28,9 +28,10 @@ describe("Nested Fast API Deployment", () => {
   });
 
   it("can add deployment", async () => {
-    await browser.pause(5000);
+    // await browser.pause(5000);
     await switchToSubframe();
     const addDeployBtn = await $('[data-automation="add-deployment-button"]');
+    await addDeployBtn.waitForExist({ timeout: 30000 });
     await addDeployBtn.click();
   });
 
