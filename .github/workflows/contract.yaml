@@ -104,6 +104,7 @@ jobs:
           sparse-checkout-cone-mode: false
           token: ${{ secrets.CONNECT_PAT }}
 
+      - run: chmod -R +x ./bin
       - run: echo "${FUZZBUCKET_SSH_KEY}" > test/fuzzbucket-ssh-key && chmod 600 test/fuzzbucket-ssh-key
 
       # vscode ui tests
