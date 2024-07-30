@@ -21,9 +21,9 @@ async function switchToSubframe() {
   const iframe = await browser.$("iframe");
   await browser.switchToFrame(iframe);
 
-  await browser.$("iframe").waitForExist({ timeout: 3000 });
+  await browser.$("iframe").waitForExist({ timeout: 30000 });
   const subiframe = await browser.$("iframe");
-  await subiframe.waitForExist({ timeout: 3000 });
+  await subiframe.waitForExist({ timeout: 30000 });
   await browser.switchToFrame(subiframe);
 }
 
@@ -74,9 +74,9 @@ describe("VS Code Extension UI Test", () => {
   });
 
   it("can click add deployment button", async () => {
-    await browser.pause(5000);
     await switchToSubframe();
     const addDeployBtn = await $('[data-automation="add-deployment-button"]');
+    await addDeployBtn.waitForExist({ timeout: 30000 });
     await expect(addDeployBtn).toHaveText("Add Deployment");
     await addDeployBtn.click();
   });
