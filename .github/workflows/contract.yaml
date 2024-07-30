@@ -73,12 +73,6 @@ jobs:
       fail-fast: false
       matrix:
         runs-on: [macos-latest, windows-latest, ubuntu-latest]
-        spec-path:
-          - ./test/specs/fastapi.spec.ts
-          - ./test/specs/nested-fastapi.spec.ts
-        workspace-path:
-          - ../sample-content/fastapi-simple
-          - ../sample-content/
     runs-on: ${{ matrix.runs-on }}
     steps:
       - uses: actions/checkout@v4
@@ -120,5 +114,11 @@ jobs:
       - name: Run tests
         run: just vscode-ui test
         env:
-          SPEC_PATH: ${{ matrix.spec-path }}
-          WORKSPACE_PATH: ${{ matrix.workspace-path }}
+          SPEC_PATH: ./test/specs/fastapi.spec.ts
+          WORKSPACE_PATH: ../sample-content/fastapi-simple
+
+      - name: Run nested tests
+        run: just vscode-ui test
+        env:
+          SPEC_PATH: ./test/specs/nested-fastapi.spec.ts
+          WORKSPACE_PATH: ../sample-content/
