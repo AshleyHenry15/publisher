@@ -41,60 +41,83 @@ describe("Nested Fast API Deployment", () => {
     // verify each entrypoint is found and listed
     const quickpick = await browser.$(".quick-input-list");
     await quickpick.waitForExist({ timeout: 30000 });
-
+  });
+  it("can list simplepy entrypoint", async () => {
     const simplepy = await browser.$(
       "aria/simple.py, (run with FastAPI), fastapi-simple/",
     );
     expect(simplepy).toExist();
+  });
 
+  it("can list quartoProjNoneMulti entrypoint", async () => {
     const quartoProjNoneMulti = await browser.$(
       "aria/quarto-proj-none.qmd, (render with Quarto), multi-type/",
     );
     expect(quartoProjNoneMulti).toExist();
+  });
 
+  it("can list simplepyMulti entrypoint", async () => {
     const simplepyMulti = await browser.$(
       "aria/simple.py, (run with FastAPI), multi-type/",
     );
     expect(simplepyMulti).toExist();
+  });
 
+  it("can list quartoProjNone entrypoint", async () => {
     const quartoProjNone = await browser.$(
       "aria/quarto-proj-none.qmd, (render with Quarto), quarto-proj-none/",
     );
     expect(quartoProjNone).toExist();
+  });
 
+  it("can list quartoProjPy entrypoint", async () => {
     const quartoProjPy = await browser.$(
       "aria/quarto-proj-py.qmd, (render with Quarto), quarto-proj-py/",
     );
     expect(quartoProjPy).toExist();
+  });
 
+  it("can list quartoProjR entrypoint", async () => {
     const quartoProjR = await browser.$(
       "aria/quarto-proj-r.qmd, (render with Quarto), quarto-proj-r/",
     );
     expect(quartoProjR).toExist();
+  });
 
+  it("can list quartoProject entrypoint", async () => {
     const quartoProject = await browser.$(
       "aria/quarto-project.qmd, (render with Quarto), quarto-project/",
     );
     expect(quartoProject).toExist();
+  });
 
+  it("can list rmdHtml entrypoint", async () => {
     const rmdHtml = await browser.$(
       "aria/index.htm, (serve pre-rendered HTML), rmd-static-1/",
     );
     expect(rmdHtml).toExist();
+  });
 
+  it("can list rmdKnitr entrypoint", async () => {
     const rmdKnitr = await browser.$(
       "aria/static.Rmd, (render with rmarkdown/knitr), rmd-static-1/",
     );
     expect(rmdKnitr).toExist();
+  });
 
+  it("can list rmdQuarto entrypoint", async () => {
     const rmdQuarto = await browser.$(
       "aria/static.Rmd, (render with Quarto), rmd-static-1/",
     );
     expect(rmdQuarto).toExist();
+  });
 
+  it("can list shiny entrypoint", async () => {
     const shiny = await browser.$("aria/app.R, (run with R Shiny), shinyapp/");
     expect(shiny).toExist();
+  });
 
+  it("can list shinyHtml entrypoint", async () => {
     const shinyHtml = await browser.$(
       "aria/index.htm, (serve pre-rendered HTML), shinyapp/",
     );
@@ -184,7 +207,7 @@ describe("Nested Fast API Deployment", () => {
     describe("Cleanup creds", () => {
       it("remove credentials", async () => {
         const scriptPath =
-          "../scripts/cleanup.bash ../../sample-content/fastapi-simple";
+          "'../scripts/cleanup.bash' ../../sample-content/fastapi-simple";
         await runShellScript(scriptPath);
       });
     });
