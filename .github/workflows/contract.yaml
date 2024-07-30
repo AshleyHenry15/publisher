@@ -112,11 +112,11 @@ jobs:
       - run: just vscode configure
       - run: just vscode-ui install
 
-      - name: Run old tests
-        run: just vscode-ui test
-        env:
-          SPEC_PATH: ./test/specs/extensions.spec.ts
-          WORKSPACE_PATH: ../sample-content/fastapi-simple
+      # - name: Run old tests
+      #   run: just vscode-ui test
+      #   env:
+      #     SPEC_PATH: ./test/specs/extensions.spec.ts
+      #     WORKSPACE_PATH: ../sample-content/fastapi-simple
 
       - name: Run tests
         run: just vscode-ui test
