@@ -77,7 +77,7 @@ describe("VS Code Extension UI Test", () => {
     await browser.pause(5000);
     await switchToSubframe();
     const addDeployBtn = await $('[data-automation="add-deployment-button"]');
-    expect(addDeployBtn).toHaveText("Add Deployment");
+    await expect(addDeployBtn).toHaveText("Add Deployment");
     await addDeployBtn.click();
   });
 
