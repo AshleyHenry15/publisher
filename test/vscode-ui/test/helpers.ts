@@ -1,5 +1,6 @@
 import { browser } from "@wdio/globals";
-import { exec } from "child_process";
+// import { exec } from "child_process";
+import * as shell from "shelljs";
 
 export async function switchToSubframe() {
   await browser.$(".webview");
@@ -28,20 +29,54 @@ export async function waitForInputFields(inputText: string) {
   );
 }
 
+// export function runShellScript() {
+//   return new Promise((resolve, reject) => {
+//     const command = `
+//       CREDS_GUID="$(${process.env.EXE} credentials list | jq -r '.[] | select(.name == "my connect server") | .guid')"
+//       ${process.env.EXE} credentials delete $CREDS_GUID
+//     `;
+//     exec(command, (error, stdout, stderr) => {
+//       if (error) {
+//         console.error(`exec error: ${error}`);
+//         return reject(error);
+//       }
+//       console.log(`stdout: ${stdout}`);
+//       console.error(`stderr: ${stderr}`);
+//       resolve(stdout);
+//     });
+//   });
+// }
+
+// const shell = require("shelljs");
+
 export function runShellScript() {
   return new Promise((resolve, reject) => {
-    const command = `
-      CREDS_GUID="$(${process.env.EXE} credentials list | jq -r '.[] | select(.name == "my connect server") | .guid')"
-      ${process.env.EXE} credentials delete $CREDS_GUID
-    `;
-    exec(command, (error, stdout, stderr) => {
-      if (error) {
-        console.error(`exec error: ${error}`);
-        return reject(error);
-      }
-      console.log(`stdout: ${stdout}`);
-      console.error(`stderr: ${stderr}`);
-      resolve(stdout);
-    });
+    shell.env["CREDS_GUID"] = shell
+      .exec(
+        `${process.env.EXE} credentials list | jq -r '.[] | select(.name == "my connect server") | .guid'`,
+        { silent: true },
+      )
+      .stdout.trim();
+
+    if (shell.env["CREDS_GUID"]) {
+      const command = `
+        ${process.env.EXE} credentials delete ${shell.env["CREDS_GUID"]}
+      `;
+      shell.exec(
+        command,
+        { silent: true },
+        (code: number, stdout: string, stderr: string) => {
+          if (code !== 0) {
+            console.error(`exec error: ${stderr}`);
+            return reject(new Error(stderr));
+          }
+          console.log(`stdout: ${stdout}`);
+          console.error(`stderr: ${stderr}`);
+          resolve(stdout);
+        },
+      );
+    } else {
+      reject(new Error("Failed to retrieve CREDS_GUID"));
+    }
   });
 }
