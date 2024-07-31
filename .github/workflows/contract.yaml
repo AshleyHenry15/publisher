@@ -114,12 +114,14 @@ jobs:
 
       - name: Run tests
         run: just vscode-ui test
+        shell: bash
         env:
           SPEC_PATH: ./test/specs/fastapi.spec.ts
           WORKSPACE_PATH: ../sample-content/fastapi-simple
 
       - name: Run nested tests
         run: just vscode-ui test
+        shell: bash
         env:
           SPEC_PATH: ./test/specs/nested-fastapi.spec.ts
           WORKSPACE_PATH: ../sample-content/
