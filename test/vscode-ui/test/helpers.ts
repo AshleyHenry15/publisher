@@ -28,24 +28,21 @@ export async function waitForInputFields(inputText: string) {
   );
 }
 
-export async function openExtension() {
-  browser.$("aria/Posit Publisher").waitForExist({ timeout: 30000 });
-
-  // open posit extension
-  const extension = await browser.$("aria/Posit Publisher");
-  await expect(extension).toExist();
-  await extension.click();
-}
-
-export function runShellScript(scriptPath: string) {
+export async function runShellScript(scriptPath: string, args: string) {
   return new Promise((resolve, reject) => {
-    exec(scriptPath, (error, stdout, stderr) => {
+    const command =
+      process.platform === "win32"
+        ? `sh ${scriptPath} ${args}`
+        : `bash ${scriptPath} ${args}`;
+    exec(command, (error, stdout, stderr) => {
       if (error) {
-        console.error(`exec error: ${error}`);
-        return reject(error);
+        reject(`Error executing script: ${error.message}`);
+        return;
       }
-      console.log(`stdout: ${stdout}`);
-      console.error(`stderr: ${stderr}`);
+      if (stderr) {
+        reject(`Script stderr: ${stderr}`);
+        return;
+      }
       resolve(stdout);
     });
   });

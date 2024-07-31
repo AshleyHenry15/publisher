@@ -4,58 +4,16 @@ import * as fs from "fs";
 import * as path from "path";
 import { fileURLToPath } from "url";
 import { dirname } from "path";
-import { exec } from "child_process";
-// import {
-//   switchToSubframe,
-//   waitForInputFields,
-//   runShellScript,
-// } from "../helpers.ts";
+import {
+  switchToSubframe,
+  waitForInputFields,
+  runShellScript,
+} from "../helpers.ts";
 
 const connectServer = process.env.CONNECT_SERVER;
 const apiKey = process.env.CONNECT_API_KEY;
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
-
-async function switchToSubframe() {
-  await browser.$(".webview");
-  const iframe = await browser.$("iframe");
-  await browser.switchToFrame(iframe);
-
-  await browser.$("iframe").waitForExist({ timeout: 30000 });
-  const subiframe = await browser.$("iframe");
-  await subiframe.waitForExist({ timeout: 30000 });
-  await browser.switchToFrame(subiframe);
-}
-
-async function waitForInputFields(inputText: string) {
-  // wait until the server responds
-  await browser.waitUntil(
-    async () => {
-      const element = await browser.$("#quickInput_message");
-      const text = await element.getText();
-      return text.includes(inputText);
-    },
-    {
-      timeout: 30000,
-      timeoutMsg:
-        "Expected element signifying server response did not appear within timeout",
-    },
-  );
-}
-
-function runShellScript(scriptPath: string) {
-  return new Promise((resolve, reject) => {
-    exec(scriptPath, (error, stdout, stderr) => {
-      if (error) {
-        console.error(`exec error: ${error}`);
-        return reject(error);
-      }
-      console.log(`stdout: ${stdout}`);
-      console.error(`stderr: ${stderr}`);
-      resolve(stdout);
-    });
-  });
-}
 
 describe("VS Code Extension UI Test", () => {
   let workbench: any;
@@ -157,12 +115,16 @@ describe("VS Code Extension UI Test", () => {
     }
 
     // Use shell script to delete credentials
-    describe("Cleanup creds", () => {
-      it("remove credentials", async () => {
-        const scriptPath =
-          "../scripts/cleanup.bash ../../sample-content/fastapi-simple";
-        await runShellScript(scriptPath);
-      });
-    });
+    const scriptPath = path.resolve(__dirname, "../scripts/cleanup.bash");
+    const args = path.resolve(
+      __dirname,
+      "../../../sample-content/fastapi-simple",
+    );
+    try {
+      const output = await runShellScript(scriptPath, args);
+      console.log(`Script output: ${output}`);
+    } catch (error) {
+      console.error(error);
+    }
   });
 });
