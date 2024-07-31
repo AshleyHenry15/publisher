@@ -210,9 +210,7 @@ describe("Nested Fast API Deployment", () => {
     // Use shell script to delete credentials
     describe("Cleanup creds", () => {
       it("remove credentials", async () => {
-        const scriptPath =
-          "sh ../scripts/cleanup.bash ../../sample-content/fastapi-simple";
-        await runShellScript(scriptPath);
+        await runShellScript();
       });
     });
   });

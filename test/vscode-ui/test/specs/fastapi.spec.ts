@@ -118,9 +118,7 @@ describe("VS Code Extension UI Test", () => {
     // Use shell script to delete credentials
     describe("Cleanup creds", () => {
       it("remove credentials", async () => {
-        const scriptPath =
-          "../scripts/cleanup.bash ../../sample-content/fastapi-simple";
-        await runShellScript(scriptPath);
+        await runShellScript();
       });
     });
   });
