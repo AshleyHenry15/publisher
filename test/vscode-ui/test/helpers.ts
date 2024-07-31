@@ -28,21 +28,15 @@ export async function waitForInputFields(inputText: string) {
   );
 }
 
-export async function runShellScript(scriptPath: string, args: string) {
+export function runShellScript(scriptPath: string) {
   return new Promise((resolve, reject) => {
-    const command =
-      process.platform === "win32"
-        ? `sh ${scriptPath} ${args}`
-        : `bash ${scriptPath} ${args}`;
-    exec(command, (error, stdout, stderr) => {
+    exec(scriptPath, (error, stdout, stderr) => {
       if (error) {
-        reject(`Error executing script: ${error.message}`);
-        return;
+        console.error(`exec error: ${error}`);
+        return reject(error);
       }
-      if (stderr) {
-        reject(`Script stderr: ${stderr}`);
-        return;
-      }
+      console.log(`stdout: ${stdout}`);
+      console.error(`stderr: ${stderr}`);
       resolve(stdout);
     });
   });

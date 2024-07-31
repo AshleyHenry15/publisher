@@ -208,16 +208,12 @@ describe("Nested Fast API Deployment", () => {
     }
 
     // Use shell script to delete credentials
-    const scriptPath = path.resolve(__dirname, "../scripts/cleanup.bash");
-    const args = path.resolve(
-      __dirname,
-      "../../../sample-content/fastapi-simple",
-    );
-    try {
-      const output = await runShellScript(scriptPath, args);
-      console.log(`Script output: ${output}`);
-    } catch (error) {
-      console.error(error);
-    }
+    describe("Cleanup creds", () => {
+      it("remove credentials", async () => {
+        const scriptPath =
+          "sh ../scripts/cleanup.bash ../../sample-content/fastapi-simple";
+        await runShellScript(scriptPath);
+      });
+    });
   });
 });

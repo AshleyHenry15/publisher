@@ -4,6 +4,7 @@ import * as fs from "fs";
 import * as path from "path";
 import { fileURLToPath } from "url";
 import { dirname } from "path";
+
 import {
   switchToSubframe,
   waitForInputFields,
@@ -115,16 +116,12 @@ describe("VS Code Extension UI Test", () => {
     }
 
     // Use shell script to delete credentials
-    const scriptPath = path.resolve(__dirname, "../scripts/cleanup.bash");
-    const args = path.resolve(
-      __dirname,
-      "../../../sample-content/fastapi-simple",
-    );
-    try {
-      const output = await runShellScript(scriptPath, args);
-      console.log(`Script output: ${output}`);
-    } catch (error) {
-      console.error(error);
-    }
+    describe("Cleanup creds", () => {
+      it("remove credentials", async () => {
+        const scriptPath =
+          "../scripts/cleanup.bash ../../sample-content/fastapi-simple";
+        await runShellScript(scriptPath);
+      });
+    });
   });
 });
