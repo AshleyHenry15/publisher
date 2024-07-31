@@ -3,5 +3,3 @@ set -euo pipefail
 
 CREDS_GUID="$(${EXE} credentials list | jq -r '.[] | select(.name == "my connect server") | .guid')"
 ${EXE} credentials delete ${CREDS_GUID}
-
-rm -rf $1/.posit/
