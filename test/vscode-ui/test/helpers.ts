@@ -28,13 +28,9 @@ export async function waitForInputFields(inputText: string) {
   );
 }
 
-export function runShellScript() {
+export function runShellScript(scriptPath: string) {
   return new Promise((resolve, reject) => {
-    const command = `
-      CREDS_GUID="$(${process.env.EXE} credentials list | jq -r '.[] | select(.name == "my connect server") | .guid')"
-      ${process.env.EXE} credentials delete $CREDS_GUID
-    `;
-    exec(command, (error, stdout, stderr) => {
+    exec(scriptPath, (error, stdout, stderr) => {
       if (error) {
         console.error(`exec error: ${error}`);
         return reject(error);
