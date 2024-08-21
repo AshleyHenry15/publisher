@@ -38,7 +38,10 @@ import {
 import { useBus } from "src/bus";
 import { EventStream } from "src/events";
 import { getPythonInterpreterPath } from "../utils/config";
-import { getSummaryStringFromError } from "src/utils/errors";
+import {
+  getStatusFromError,
+  getSummaryStringFromError,
+} from "src/utils/errors";
 import { getNonce } from "src/utils/getNonce";
 import { getUri } from "src/utils/getUri";
 import { deployProject } from "src/views/deployProgress";
@@ -1286,9 +1289,24 @@ export class HomeViewProvider implements WebviewViewProvider, Disposable {
           kind: HostToWebviewMessageType.REFRESH_FILES_LISTS,
           content: {
             ...splitFilesOnInclusion(response.data),
+            error: undefined,
           },
         });
       } catch (error: unknown) {
+        if (isAxiosError(error)) {
+          const code = getStatusFromError(error);
+          if (code === 422) {
+            this.webviewConduit.sendMsg({
+              kind: HostToWebviewMessageType.REFRESH_FILES_LISTS,
+              content: {
+                includedFiles: [],
+                excludedFiles: [],
+                error: error.response?.data,
+              },
+            });
+            return;
+          }
+        }
         const summary = getSummaryStringFromError(
           "sendRefreshedFilesLists, files.getByConfiguration",
           error,

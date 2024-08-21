@@ -10,7 +10,9 @@
       },
     ]"
   >
+    <p v-if="home.fileListError">Error: {{ home.fileListError }}</p>
     <TreeItem
+      v-if="!home.fileListError"
       v-model:expanded="includedExpanded"
       title="Included Files"
       codicon="codicon-list-unordered"
@@ -50,6 +52,7 @@
     </TreeItem>
 
     <TreeItem
+      v-if="!home.fileListError"
       v-model:expanded="excludedExpanded"
       title="Excluded Files"
       codicon="codicon-list-unordered"

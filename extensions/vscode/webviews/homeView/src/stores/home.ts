@@ -71,6 +71,7 @@ export const useHomeStore = defineStore("home", () => {
 
   const includedFiles = ref<ContentRecordFile[]>([]);
   const excludedFiles = ref<ContentRecordFile[]>([]);
+  const fileListError = ref<string | undefined>();
 
   const pythonProject = ref<boolean>(false);
   const pythonPackages = ref<string[]>();
@@ -179,6 +180,7 @@ export const useHomeStore = defineStore("home", () => {
     includedFiles,
     initializingRequestComplete,
     excludedFiles,
+    fileListError,
     lastContentRecordResult,
     lastContentRecordMsg,
     pythonProject,

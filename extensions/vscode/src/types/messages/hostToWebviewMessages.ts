@@ -124,6 +124,7 @@ export type RefreshFilesListsMsg = AnyHostToWebviewMessage<
   {
     includedFiles: ContentRecordFile[];
     excludedFiles: ContentRecordFile[];
+    error: string | undefined;
   }
 >;
 

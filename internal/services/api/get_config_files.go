@@ -13,6 +13,7 @@ import (
 	"github.com/posit-dev/publisher/internal/config"
 	"github.com/posit-dev/publisher/internal/logging"
 	"github.com/posit-dev/publisher/internal/services/api/files"
+	"github.com/posit-dev/publisher/internal/types"
 	"github.com/posit-dev/publisher/internal/util"
 )
 
@@ -26,8 +27,18 @@ func GetConfigFilesHandlerFunc(base util.AbsolutePath, filesService files.FilesS
 		}
 		configPath := config.GetConfigPath(projectDir, name)
 		cfg, err := config.FromFile(configPath)
-		if err != nil && errors.Is(err, fs.ErrNotExist) {
-			http.NotFound(w, req)
+		if err != nil {
+			if errors.Is(err, fs.ErrNotExist) {
+				http.NotFound(w, req)
+			} else {
+				agentErr, ok := err.(*types.AgentError)
+				if ok && (agentErr.Code == util.InvalidTOMLCode || agentErr.Code == util.UnknownTOMLKeyCode) {
+					w.WriteHeader(http.StatusUnprocessableEntity)
+					w.Write([]byte("invalid configuration file"))
+				} else {
+					InternalError(w, req, log, err)
+				}
+			}
 			return
 		}
 		matchList, err := matcher.NewMatchList(projectDir, matcher.StandardExclusions)

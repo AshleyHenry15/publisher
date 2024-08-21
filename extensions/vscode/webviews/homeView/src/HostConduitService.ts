@@ -187,6 +187,7 @@ const onRefreshFilesListMsg = (msg: RefreshFilesListsMsg) => {
   const home = useHomeStore();
   home.includedFiles = msg.content.includedFiles;
   home.excludedFiles = msg.content.excludedFiles;
+  home.fileListError = msg.content.error;
 };
 
 const onUpdatePythonPackages = (msg: UpdatePythonPackages) => {
