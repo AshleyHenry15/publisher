@@ -31,13 +31,6 @@ export type ContentRecordError = {
   state: ContentRecordState.ERROR;
 } & ContentRecordLocation;
 
-type OptionalPreDeploymentFields = {
-  id?: string;
-  bundleUrl?: string;
-  dashboardUrl?: string;
-  directUrl?: string;
-};
-
 type ContentRecordRecord = {
   $schema: SchemaURL;
   serverType: ServerType;
@@ -51,8 +44,7 @@ type ContentRecordRecord = {
 
 export type PreContentRecord = {
   state: ContentRecordState.NEW;
-} & ContentRecordRecord &
-  OptionalPreDeploymentFields;
+} & ContentRecordRecord;
 
 export type PreContentRecordWithConfig = PreContentRecord &
   ConfigurationLocation;

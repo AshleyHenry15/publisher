@@ -194,7 +194,7 @@
       },
       {
         "command": "posit.publisher.deployWithEntrypoint",
-        "title": "Deploy with Posit Publisher",
+        "title": "Deploy with this Entrypoint",
         "icon": "$(posit-publisher-publish)",
         "category": "Posit Publisher"
       }

@@ -36,10 +36,7 @@
       />
       <div class="tree-item-label-container">
         <span class="tree-item-title" data-automation="req">{{ title }}</span>
-        <span v-if="$slots.description" class="tree-item-description">
-          <slot name="description" />
-        </span>
-        <span v-else-if="description" class="tree-item-description">
+        <span v-if="description" class="tree-item-description">
           {{ description }}
         </span>
       </div>
@@ -82,7 +79,6 @@ withDefaults(defineProps<Props>(), {
 
 defineSlots<{
   default(props: { indentLevel: number }): any;
-  description(): any;
   postDecor(): any;
 }>();
 
@@ -155,7 +151,6 @@ const toggleExpanded = () => {
 
     .tree-item-label-container {
       flex: 1;
-      display: flex;
       min-width: 0;
       overflow: hidden;
       text-overflow: ellipsis;
@@ -164,24 +159,13 @@ const toggleExpanded = () => {
         line-height: 22px;
         color: inherit;
         white-space: pre;
-        min-width: 0;
-        overflow: hidden;
-        text-overflow: ellipsis;
       }
 
       .tree-item-description {
-        line-height: 22px;
         font-size: 0.9em;
         margin-left: 0.5em;
-        flex-shrink: 100000;
+        opacity: 0.7;
         white-space: pre;
-        min-width: 0;
-        overflow: hidden;
-        text-overflow: ellipsis;
-
-        &:not(:has(input)) {
-          opacity: 0.7;
-        }
       }
     }
 

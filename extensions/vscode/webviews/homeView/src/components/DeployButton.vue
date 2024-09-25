@@ -46,14 +46,6 @@ const deploy = () => {
     return;
   }
 
-  // Only send up secrets that have values
-  const secrets: Record<string, string> = {};
-  home.secrets.forEach((value, name) => {
-    if (value) {
-      secrets[name] = value;
-    }
-  });
-
   hostConduit.sendMsg({
     kind: WebviewToHostMessageType.DEPLOY,
     content: {
@@ -61,7 +53,6 @@ const deploy = () => {
       configurationName: home.selectedConfiguration.configurationName,
       credentialName: home.serverCredential.name,
       projectDir: home.selectedContentRecord.projectDir,
-      secrets: secrets,
     },
   });
 };

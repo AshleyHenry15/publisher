@@ -73,7 +73,6 @@ import { showProgress } from "src/utils/progress";
 import { newCredential } from "src/multiStepInputs/newCredential";
 import { PublisherState } from "src/state";
 import { throttleWithLastPending } from "src/utils/throttle";
-import { showAssociateGUID } from "src/actions/showAssociateGUID";
 
 enum HomeViewInitialized {
   initialized = "initialized",
@@ -226,8 +225,6 @@ export class HomeViewProvider implements WebviewViewProvider, Disposable {
         return this.showNewCredential();
       case WebviewToHostMessageType.VIEW_PUBLISHING_LOG:
         return this.showPublishingLog();
-      case WebviewToHostMessageType.SHOW_ASSOCIATE_GUID:
-        return showAssociateGUID(this.state);
       default:
         window.showErrorMessage(
           `Internal Error: onConduitMessage unhandled msg: ${JSON.stringify(msg)}`,
@@ -248,7 +245,6 @@ export class HomeViewProvider implements WebviewViewProvider, Disposable {
     credentialName: string,
     configurationName: string,
     projectDir: string,
-    secrets?: Record<string, string>,
   ) {
     try {
       const api = await useApi();
@@ -257,7 +253,6 @@ export class HomeViewProvider implements WebviewViewProvider, Disposable {
         credentialName,
         configurationName,
         projectDir,
-        secrets,
       );
       deployProject(response.data.localId, this.stream);
     } catch (error: unknown) {
@@ -272,7 +267,6 @@ export class HomeViewProvider implements WebviewViewProvider, Disposable {
       msg.content.credentialName,
       msg.content.configurationName,
       msg.content.projectDir,
-      msg.content.secrets,
     );
   }
 
@@ -819,10 +813,8 @@ export class HomeViewProvider implements WebviewViewProvider, Disposable {
           const api = await useApi();
           await api.contentRecords.patch(
             targetContentRecord.deploymentName,
+            config.configurationName,
             targetContentRecord.projectDir,
-            {
-              configName: config.configurationName,
-            },
           );
         });
 
@@ -1420,6 +1412,15 @@ export class HomeViewProvider implements WebviewViewProvider, Disposable {
   public debounceSendRefreshedFilesLists = debounce(async () => {
     return await this.sendRefreshedFilesLists();
   }, DebounceDelaysMS.file);
+
+  public initiatePublish(target: PublishProcessParams) {
+    this.initiateDeployment(
+      target.deploymentName,
+      target.credentialName,
+      target.configurationName,
+      target.projectDir,
+    );
+  }
 
   public async handleFileInitiatedDeploymentSelection(uri: Uri) {
     // Guide the user to create a new Deployment with that file as the entrypoint

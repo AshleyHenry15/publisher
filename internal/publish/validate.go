@@ -7,7 +7,6 @@ import (
 	"github.com/posit-dev/publisher/internal/events"
 	"github.com/posit-dev/publisher/internal/logging"
 	"github.com/posit-dev/publisher/internal/types"
-	"github.com/posit-dev/publisher/internal/util"
 )
 
 type validateStartData struct {
@@ -24,7 +23,7 @@ func (p *defaultPublisher) validateContent(
 	log := p.log.WithArgs(logging.LogKeyOp, op)
 
 	p.emitter.Emit(events.New(op, events.StartPhase, events.NoError, validateStartData{
-		DirectURL: util.GetDirectURL(p.Account.URL, p.Target.ID),
+		DirectURL: getDirectURL(p.Account.URL, p.Target.ID),
 	}))
 	log.Info("Validating Deployment")
 

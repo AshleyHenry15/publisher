@@ -121,9 +121,6 @@ func (s *StateSuite) createTargetFile(name string, bad bool) {
 		server_url = 'https://connect.example.com'
 		server_type = "connect"
 		id = '1234567890ABCDEF'
-		dashboard_url = 'https://connect.example.com/connect/#/apps/1234567890ABCDEF'
-		direct_url = 'https://connect.example.com/content/1234567890ABCDEF/'
-		logs_url = 'https://connect.example.com/connect/#/apps/1234567890ABCDEF/logs'
 		type = 'python-dash'
 		configuration_name = "myConfig"
 		files = [
@@ -178,10 +175,7 @@ func (s *StateSuite) TestLoadTarget() {
 			"app.py",
 			"requirements.txt",
 		},
-		ID:           "1234567890ABCDEF",
-		DashboardURL: "https://connect.example.com/connect/#/apps/1234567890ABCDEF",
-		DirectURL:    "https://connect.example.com/content/1234567890ABCDEF/",
-		LogsURL:      "https://connect.example.com/connect/#/apps/1234567890ABCDEF/logs",
+		ID: "1234567890ABCDEF",
 		Configuration: &config.Config{
 			Schema:      "https://cdn.posit.co/publisher/schemas/posit-publishing-schema-v3.json",
 			Type:        "python-dash",
@@ -361,10 +355,6 @@ func (s *StateSuite) TestNewWithTarget() {
 	targetPath := deployment.GetDeploymentPath(s.cwd, "myTargetName")
 	d := deployment.New()
 	d.ID = "myTargetName"
-
-	d.DashboardURL = "https://connect.example.com/connect/#/apps/1234567890ABCDEF"
-	d.DirectURL = "https://connect.example.com/content/1234567890ABCDEF/"
-	d.LogsURL = "https://connect.example.com/connect/#/apps/1234567890ABCDEF/logs"
 	d.Type = cfg.Type
 	d.ConfigName = "savedConfigName"
 	d.ServerURL = "https://saved.server.example.com"
@@ -403,9 +393,6 @@ func (s *StateSuite) TestNewWithTargetAndAccount() {
 	targetPath := deployment.GetDeploymentPath(s.cwd, "myTargetName")
 	d := deployment.New()
 	d.ID = "myTargetName"
-	d.DashboardURL = "https://connect.example.com/connect/#/apps/1234567890ABCDEF"
-	d.DirectURL = "https://connect.example.com/content/1234567890ABCDEF/"
-	d.LogsURL = "https://connect.example.com/connect/#/apps/1234567890ABCDEF/logs"
 	d.ConfigName = "savedConfigName"
 	d.ServerURL = "https://saved.server.example.com"
 	d.Configuration = cfg

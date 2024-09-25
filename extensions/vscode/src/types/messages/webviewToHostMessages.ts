@@ -25,7 +25,6 @@ export enum WebviewToHostMessageType {
   NEW_CREDENTIAL_FOR_DEPLOYMENT = "newCredentialForDeployment",
   NEW_CREDENTIAL = "newCredential",
   VIEW_PUBLISHING_LOG = "viewPublishingLog",
-  SHOW_ASSOCIATE_GUID = "ShowAssociateGUID",
 }
 
 export type AnyWebviewToHostMessage<
@@ -59,8 +58,7 @@ export type WebviewToHostMessage =
   | NewDeploymentMsg
   | NewCredentialForDeploymentMsg
   | NewCredentialMsg
-  | ViewPublishingLog
-  | ShowAssociateGUIDMsg;
+  | ViewPublishingLog;
 
 export function isWebviewToHostMessage(msg: any): msg is WebviewToHostMessage {
   return (
@@ -84,8 +82,7 @@ export function isWebviewToHostMessage(msg: any): msg is WebviewToHostMessage {
     msg.kind === WebviewToHostMessageType.NEW_DEPLOYMENT ||
     msg.kind === WebviewToHostMessageType.NEW_CREDENTIAL_FOR_DEPLOYMENT ||
     msg.kind === WebviewToHostMessageType.NEW_CREDENTIAL ||
-    msg.kind === WebviewToHostMessageType.VIEW_PUBLISHING_LOG ||
-    msg.kind === WebviewToHostMessageType.SHOW_ASSOCIATE_GUID
+    msg.kind === WebviewToHostMessageType.VIEW_PUBLISHING_LOG
   );
 }
 
@@ -96,7 +93,6 @@ export type DeployMsg = AnyWebviewToHostMessage<
     credentialName: string;
     configurationName: string;
     projectDir: string;
-    secrets?: Record<string, string>;
   }
 >;
 
@@ -187,6 +183,3 @@ export type NewCredentialMsg =
 
 export type ViewPublishingLog =
   AnyWebviewToHostMessage<WebviewToHostMessageType.VIEW_PUBLISHING_LOG>;
-
-export type ShowAssociateGUIDMsg =
-  AnyWebviewToHostMessage<WebviewToHostMessageType.SHOW_ASSOCIATE_GUID>;

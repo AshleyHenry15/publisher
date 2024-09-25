@@ -16,7 +16,6 @@ import (
 	"github.com/posit-dev/publisher/internal/logging"
 	"github.com/posit-dev/publisher/internal/publish"
 	"github.com/posit-dev/publisher/internal/state"
-	"github.com/posit-dev/publisher/internal/types"
 	"github.com/posit-dev/publisher/internal/util"
 	"github.com/posit-dev/publisher/internal/util/utiltest"
 	"github.com/spf13/afero"
@@ -43,7 +42,7 @@ func (s *PatchDeploymentHandlerFuncSuite) SetupTest() {
 	s.cwd.MkdirAll(0700)
 }
 
-func (s *PatchDeploymentHandlerFuncSuite) TestPatchDeploymentHandlerFuncWithConfig() {
+func (s *PatchDeploymentHandlerFuncSuite) TestPatchDeploymentHandlerFunc() {
 	log := logging.New()
 
 	rec := httptest.NewRecorder()
@@ -70,38 +69,6 @@ func (s *PatchDeploymentHandlerFuncSuite) TestPatchDeploymentHandlerFuncWithConf
 	updated, err := deployment.FromFile(path)
 	s.NoError(err)
 	s.Equal("myConfig", updated.ConfigName)
-}
-
-func (s *PatchDeploymentHandlerFuncSuite) TestPatchDeploymentHandlerFuncWithID() {
-	log := logging.New()
-
-	rec := httptest.NewRecorder()
-	req, err := http.NewRequest("PATCH", "/api/deployments/myTargetName", nil)
-	s.NoError(err)
-	req = mux.SetURLVars(req, map[string]string{"name": "myTargetName"})
-
-	path := deployment.GetDeploymentPath(s.cwd, "myTargetName")
-	d := deployment.New()
-	err = d.WriteFile(path)
-	s.NoError(err)
-
-	cfg := config.New()
-	err = cfg.WriteFile(config.GetConfigPath(s.cwd, "myConfig"))
-	s.NoError(err)
-
-	req.Body = io.NopCloser(strings.NewReader(`{"id": "abc"}`))
-
-	handler := PatchDeploymentHandlerFunc(s.cwd, log)
-	handler(rec, req)
-
-	s.Equal(http.StatusOK, rec.Result().StatusCode)
-
-	updated, err := deployment.FromFile(path)
-	s.NoError(err)
-	s.Equal(types.ContentID("abc"), updated.ID)
-	s.Equal("/connect/#/apps/abc", updated.DashboardURL)
-	s.Equal("/content/abc/", updated.DirectURL)
-	s.Equal("/connect/#/apps/abc/logs", updated.LogsURL)
 }
 
 func (s *PatchDeploymentHandlerFuncSuite) TestPatchDeploymentHandlerFuncBadJSON() {
