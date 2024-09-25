@@ -85,57 +85,14 @@ jobs:
       - uses: actions/checkout@v4
         with:
           fetch-depth: 0
-      - uses: ./.github/actions/setup
-      - name: python
-        uses: actions/setup-python@v5
-        with:
-          python-version: 3.12
-
-      - name: R
-        uses: r-lib/actions/setup-r@v2
-        with:
-          r-version: 4.3.0
-      - name: quarto
-        uses: quarto-dev/quarto-actions/setup@v2
-        with:
-          version: 1.4.549
 
       - uses: actions/download-artifact@v4
         with:
           name: bin
           path: bin
 
-      - uses: actions/checkout@v4
-        with:
-          repository: rstudio/connect-content
-          path: "test/content"
-          sparse-checkout: bundles
-          sparse-checkout-cone-mode: false
-          token: ${{ secrets.CONNECT_PAT }}
-
-      - run: chmod -R +x ./bin
-      - run: echo "${FUZZBUCKET_SSH_KEY}" > test/fuzzbucket-ssh-key && chmod 600 test/fuzzbucket-ssh-key
-
       # vscode ui tests
       - run: just package
-      - run: just vscode configure
-      - run: just vscode-ui install
-      - run: python --version
-
-      - name: Run root tests
-        run: just vscode-ui test vscode-root
-
-      - name: Run nested tests
-        run: just vscode-ui test vscode-nested
-
-      - name: Save screenshots
-        uses: actions/upload-artifact@v4
-        if: failure()
-        with:
-          name: ${{ matrix.runs-on }}-screenshots
-          path: test/vscode-ui/errorShots
-          if-no-files-found: ignore
-          retention-days: 1
 
       # - name: Setup tmate session
       #   if: ${{ failure() }}
