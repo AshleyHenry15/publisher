@@ -60,7 +60,7 @@ func (s *PostCredentialTestSuite) Test409() {
 	url := "http://example.com"
 	ak := "12345"
 
-	cs := credentials.NewCredentialsService(s.log)
+	cs := credentials.CredentialsService{}
 	_, err := cs.Set(name, url, ak)
 	s.NoError(err)
 

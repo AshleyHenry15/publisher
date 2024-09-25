@@ -32,7 +32,6 @@ import (
 	"net/url"
 
 	"github.com/google/uuid"
-	"github.com/posit-dev/publisher/internal/logging"
 	"github.com/posit-dev/publisher/internal/util"
 	"github.com/spf13/afero"
 	"github.com/zalando/go-keyring"
@@ -75,21 +74,8 @@ func (cr *CredentialRecord) ToCredential() (*Credential, error) {
 	}
 }
 
-type CredentialsService interface {
-	FileCredentialRecordFactory() (*CredentialRecord, error)
-	Delete(guid string) error
-	Get(guid string) (*Credential, error)
-	List() ([]Credential, error)
-	Set(name string, url string, ak string) (*Credential, error)
-}
-
-type credentialsService struct {
+type CredentialsService struct {
 	afs afero.Fs
-	log logging.Logger
-}
-
-func NewCredentialsService(log logging.Logger) *credentialsService {
-	return &credentialsService{log: log}
 }
 
 // FileCredentialRecordFactory creates a Credential based on the presence of the
@@ -100,7 +86,7 @@ type fileCredential struct {
 	Key string `toml:"key"`
 }
 
-func (cs *credentialsService) FileCredentialRecordFactory() (*CredentialRecord, error) {
+func (cs *CredentialsService) FileCredentialRecordFactory() (*CredentialRecord, error) {
 	homeDir, err := util.UserHomeDir(cs.afs)
 	if err != nil {
 		return nil, err
@@ -162,7 +148,7 @@ func (cs *credentialsService) FileCredentialRecordFactory() (*CredentialRecord, 
 	return nil, nil
 }
 
-func (cs *credentialsService) checkForConflicts(
+func (cs *CredentialsService) checkForConflicts(
 	table *map[string]CredentialRecord,
 	c *Credential) error {
 	// Check if Credential attributes (URL or name) are already used by another credential
@@ -201,7 +187,7 @@ func (cs *credentialsService) checkForConflicts(
 
 // Delete removes a Credential by its guid.
 // If lookup by guid fails, a NotFoundError is returned.
-func (cs *credentialsService) Delete(guid string) error {
+func (cs *CredentialsService) Delete(guid string) error {
 
 	table, err := cs.load()
 	if err != nil {
@@ -210,7 +196,6 @@ func (cs *credentialsService) Delete(guid string) error {
 
 	_, exists := table[guid]
 	if !exists {
-		cs.log.Debug("Credential does not exist", "credential", guid)
 		return &NotFoundError{GUID: guid}
 	}
 
@@ -224,7 +209,7 @@ func (cs *credentialsService) Delete(guid string) error {
 }
 
 // Get retrieves a Credential by its guid.
-func (cs *credentialsService) Get(guid string) (*Credential, error) {
+func (cs *CredentialsService) Get(guid string) (*Credential, error) {
 	table, err := cs.load()
 	if err != nil {
 		return nil, err
@@ -232,7 +217,6 @@ func (cs *credentialsService) Get(guid string) (*Credential, error) {
 
 	cr, exists := table[guid]
 	if !exists {
-		cs.log.Debug("Credential does not exist", "credential", guid)
 		return nil, &NotFoundError{GUID: guid}
 	}
 
@@ -240,7 +224,7 @@ func (cs *credentialsService) Get(guid string) (*Credential, error) {
 }
 
 // List retrieves all Credentials
-func (cs *credentialsService) List() ([]Credential, error) {
+func (cs *CredentialsService) List() ([]Credential, error) {
 	records, err := cs.load()
 	if err != nil {
 		return nil, err
@@ -258,7 +242,7 @@ func (cs *credentialsService) List() ([]Credential, error) {
 
 // Set creates a Credential.
 // A guid is assigned to the Credential using the UUIDv4 specification.
-func (cs *credentialsService) Set(name string, url string, ak string) (*Credential, error) {
+func (cs *CredentialsService) Set(name string, url string, ak string) (*Credential, error) {
 	table, err := cs.load()
 	if err != nil {
 		return nil, err
@@ -302,7 +286,7 @@ func (cs *credentialsService) Set(name string, url string, ak string) (*Credenti
 }
 
 // Saves the CredentialTable, but removes Env Credentials first
-func (cs *credentialsService) save(table CredentialTable) error {
+func (cs *CredentialsService) save(table CredentialTable) error {
 
 	// remove any environment variable credential from the table
 	// before saving
@@ -315,7 +299,7 @@ func (cs *credentialsService) save(table CredentialTable) error {
 }
 
 // Saves the CredentialTable to keyring
-func (cs *credentialsService) saveToKeyRing(table CredentialTable) error {
+func (cs *CredentialsService) saveToKeyRing(table CredentialTable) error {
 	data, err := json.Marshal(table)
 	if err != nil {
 		return fmt.Errorf("failed to serialize credentials: %v", err)
@@ -330,28 +314,24 @@ func (cs *credentialsService) saveToKeyRing(table CredentialTable) error {
 }
 
 // Loads the CredentialTable with keyring and env values
-func (cs *credentialsService) load() (CredentialTable, error) {
+func (cs *CredentialsService) load() (CredentialTable, error) {
 	table, err := cs.loadFromKeyRing()
 	if err != nil {
-		cs.log.Debug("Failed to load credentials from system keyring", "error", err.Error())
 		return nil, err
 	}
 
 	// insert a possible file-based credential before returning
 	record, err := cs.FileCredentialRecordFactory()
 	if err != nil {
-		cs.log.Debug("Failed to create file based credentials records instance", "error", err.Error())
 		return nil, err
 	}
 	if record != nil {
 		c, err := record.ToCredential()
 		if err != nil {
-			cs.log.Debug("Error building credentials from file record", "error", err.Error())
 			return nil, err
 		}
 		err = cs.checkForConflicts(&table, c)
 		if err != nil {
-			cs.log.Debug("Conflict on credential record", "error", err.Error())
 			return nil, err
 		}
 		table[EnvVarGUID] = *record
@@ -360,7 +340,7 @@ func (cs *credentialsService) load() (CredentialTable, error) {
 }
 
 // Loads the CredentialTable from keyRing
-func (cs *credentialsService) loadFromKeyRing() (CredentialTable, error) {
+func (cs *CredentialsService) loadFromKeyRing() (CredentialTable, error) {
 	ks := KeyringService{}
 	data, err := ks.Get(ServiceName, "credentials")
 	if err != nil {

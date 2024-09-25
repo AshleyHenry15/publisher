@@ -12,7 +12,7 @@ import (
 
 func GetCredentialsHandlerFunc(log logging.Logger) http.HandlerFunc {
 	return func(w http.ResponseWriter, req *http.Request) {
-		cs := credentials.NewCredentialsService(log)
+		cs := credentials.CredentialsService{}
 		creds, err := cs.List()
 		if err != nil {
 			InternalError(w, req, log, err)
