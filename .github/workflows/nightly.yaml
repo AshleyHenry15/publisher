@@ -18,11 +18,8 @@ jobs:
     uses: ./.github/workflows/agent.yaml
   build:
     uses: ./.github/workflows/build.yaml
-  contract-deps:
-    secrets: inherit
-    uses: ./.github/workflows/contract-deps.yaml
   nightly:
-    needs: [build, contract-deps]
+    needs: [build]
     secrets: inherit
     uses: ./.github/workflows/contract.yaml
     with:

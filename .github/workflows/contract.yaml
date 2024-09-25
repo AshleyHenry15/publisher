@@ -85,17 +85,14 @@ jobs:
       - uses: actions/checkout@v4
         with:
           fetch-depth: 0
+      - uses: ./.github/actions/setup
 
       - uses: actions/download-artifact@v4
         with:
           name: bin
           path: bin
 
+      - run: chmod -R +x ./bin
+
       # vscode ui tests
       - run: just package
-
-      # - name: Setup tmate session
-      #   if: ${{ failure() }}
-      #   uses: mxschmitt/action-tmate@v3
-      #   with:
-      #     limit-access-to-actor: true
