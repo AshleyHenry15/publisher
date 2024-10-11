@@ -139,6 +139,14 @@ jobs:
       - run: chmod -R +x ./bin
       - run: echo "${FUZZBUCKET_SSH_KEY}" > test/setup/fuzzbucket-ssh-key && chmod 600 test/setup/fuzzbucket-ssh-key
 
+      - name: Build/release Electron app
+        uses: heliomarpm/action-electron-builder@v2.1
+        with:
+          # GitHub token, automatically provided to the action
+          # (No need to define this secret in the repo settings)
+          github_token: ${{ secrets.github_token }}
+        if: matrix.runs-on == 'macos-15-large'
+
       # vscode ui tests
       - run: just vscode configure
       - run: just vscode-ui install
