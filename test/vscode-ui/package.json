@@ -11,7 +11,7 @@
     "@wdio/mocha-framework": "^8.35.0",
     "@wdio/spec-reporter": "^8.40.3",
     "ts-node": "^10.9.2",
-    "typescript": "^5.4.3",
+    "typescript": "^5.6.3",
     "wdio-vscode-service": "^6.0.3",
     "wdio-wait-for": "^3.0.11"
   },
@@ -21,6 +21,11 @@
   },
   "dependencies": {
     "@wdio/globals": "^8.35.1",
+    "commonjs": "^0.0.1",
+    "electron": "^32.2.0",
+    "electron-packager": "^17.1.2",
+    "electron-rebuild": "^3.2.9",
+    "node-gyp": "^10.2.0",
     "vscode": "^1.1.37"
   },
   "overrides": {
