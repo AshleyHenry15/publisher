@@ -5,7 +5,7 @@
     "@badisi/wdio-harness": "^3.1.0",
     "@testing-library/webdriverio": "^3.2.1",
     "@types/jest": "^29.5.12",
-    "@wdio/cli": "^8.35.1",
+    "@wdio/cli": "^9.1.5",
     "@wdio/dot-reporter": "^9.0.4",
     "@wdio/local-runner": "^8.35.1",
     "@wdio/mocha-framework": "^8.35.0",
@@ -21,12 +21,7 @@
   },
   "dependencies": {
     "@wdio/globals": "^8.35.1",
-    "commonjs": "^0.0.1",
-    "electron": "^32.2.0",
-    "electron-packager": "^17.1.2",
-    "electron-rebuild": "^3.2.9",
-    "node-gyp": "^10.2.0",
-    "vscode": "^1.1.37"
+    "commonjs": "^0.0.1"
   },
   "overrides": {
     "got@<11.8.5": "11.8.5",

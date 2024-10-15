@@ -327,14 +327,14 @@ export const config: Options.Testrunner = {
       for (const file of files) {
         const filePath = path.join(positDir, file);
         if (fs.lstatSync(filePath).isDirectory()) {
-          fs.rmdirSync(filePath, { recursive: true }); // Delete directory recursively
+          fs.rmSync(filePath, { recursive: true, force: true }); // Delete directory recursively
         } else {
           fs.unlinkSync(filePath); // Delete file
         }
       }
 
       // Delete the directory
-      fs.rmdirSync(positDir);
+      fs.rmSync(positDir, { recursive: true, force: true });
     } else {
       console.log("Directory does not exist");
     }
