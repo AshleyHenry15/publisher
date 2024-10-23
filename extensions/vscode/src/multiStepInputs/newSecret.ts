@@ -13,7 +13,7 @@ import { showProgress } from "src/utils/progress";
 export async function newSecret(
   viewId: string,
   activeConfig: Configuration,
-  callback: (name: string, value: string) => void,
+  callback: (name: string, value: string | undefined) => void,
 ): Promise<void> {
   const environment = activeConfig.configuration.environment;
   const existingKeys = new Set();
@@ -122,5 +122,6 @@ export async function newSecret(
     );
   }
 
-  callback(name, value);
+  // Send undefined to the callback if the value is an empty string
+  callback(name, value !== "" ? value : undefined);
 }
