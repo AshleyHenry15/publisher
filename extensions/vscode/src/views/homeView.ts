@@ -35,7 +35,6 @@ import {
   isPreContentRecordWithConfig,
   useApi,
   AllContentRecordTypes,
-  EnvironmentConfig,
 } from "src/api";
 import { useBus } from "src/bus";
 import { EventStream } from "src/events";
@@ -78,6 +77,7 @@ import { showAssociateGUID } from "src/actions/showAssociateGUID";
 import { extensionSettings } from "src/extension";
 import { openFileInEditor } from "src/commands";
 import { showImmediateDeploymentFailureMessage } from "./publishFailures";
+import { newSecret } from "src/multiStepInputs/newSecret";
 
 enum HomeViewInitialized {
   initialized = "initialized",
@@ -954,32 +954,6 @@ export class HomeViewProvider implements WebviewViewProvider, Disposable {
     }
   }
 
-  private inputSecretName = async (
-    environment: EnvironmentConfig | undefined,
-  ) => {
-    const existingKeys = new Set();
-    if (environment) {
-      for (const secret in environment) {
-        existingKeys.add(secret);
-      }
-    }
-
-    return await window.showInputBox({
-      title: "Add a Secret",
-      prompt: "Enter the name of the secret.",
-      ignoreFocusOut: true,
-      validateInput: (value: string) => {
-        if (value.length === 0) {
-          return "Secret names cannot be empty.";
-        }
-        if (existingKeys.has(value)) {
-          return "There is already an environment variable with this name. Secrets and environment variable names must be unique.";
-        }
-        return;
-      },
-    });
-  };
-
   public addSecret = async () => {
     const activeConfig = await this.state.getSelectedConfiguration();
     if (activeConfig === undefined) {
@@ -993,29 +967,9 @@ export class HomeViewProvider implements WebviewViewProvider, Disposable {
       return;
     }
 
-    const name = await this.inputSecretName(
-      activeConfig.configuration.environment,
-    );
-    if (name === undefined) {
-      // Cancelled by the user
-      return;
-    }
-
-    try {
-      await showProgress("Adding Secret", Views.HomeView, async () => {
-        const api = await useApi();
-        await api.secrets.add(
-          activeConfig.configurationName,
-          name,
-          activeConfig.projectDir,
-        );
-      });
-    } catch (error: unknown) {
-      const summary = getSummaryStringFromError("addSecret", error);
-      window.showInformationMessage(
-        `Failed to add secret to configuration. ${summary}`,
-      );
-    }
+    newSecret(Views.HomeView, activeConfig, (name, value) => {
+      window.showInformationMessage(`Secret ${name} added with value ${value}`);
+    });
   };
 
   public removeSecret = async (context: { name: string }) => {
