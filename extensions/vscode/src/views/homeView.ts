@@ -968,7 +968,12 @@ export class HomeViewProvider implements WebviewViewProvider, Disposable {
     }
 
     newSecret(Views.HomeView, activeConfig, (name, value) => {
-      window.showInformationMessage(`Secret ${name} added with value ${value}`);
+      if (value) {
+        this.webviewConduit.sendMsg({
+          kind: HostToWebviewMessageType.SET_SECRET_VALUE,
+          content: { name: name, value: value },
+        });
+      }
     });
   };
 

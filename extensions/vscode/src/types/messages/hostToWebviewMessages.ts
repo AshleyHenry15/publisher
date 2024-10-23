@@ -28,6 +28,7 @@ export enum HostToWebviewMessageType {
   SHOW_DISABLE_OVERLAY = "showDisableOverlay",
   HIDE_DISABLE_OVERLAY = "hideDisableOverlay",
   SET_PATH_SEPARATOR = "setPathSeparator",
+  SET_SECRET_VALUE = "setSecretValue",
 }
 
 export type AnyHostToWebviewMessage<
@@ -55,7 +56,8 @@ export type HostToWebviewMessage =
   | UpdateRPackages
   | ShowDisableOverlayMsg
   | HideDisableOverlayMsg
-  | SetPathSeparatorMsg;
+  | SetPathSeparatorMsg
+  | SetSecretValueMsg;
 
 export function isHostToWebviewMessage(msg: any): msg is HostToWebviewMessage {
   return (
@@ -73,7 +75,8 @@ export function isHostToWebviewMessage(msg: any): msg is HostToWebviewMessage {
     msg.kind === HostToWebviewMessageType.UPDATE_R_PACKAGES ||
     msg.kind === HostToWebviewMessageType.SHOW_DISABLE_OVERLAY ||
     msg.kind === HostToWebviewMessageType.HIDE_DISABLE_OVERLAY ||
-    msg.kind === HostToWebviewMessageType.SET_PATH_SEPARATOR
+    msg.kind === HostToWebviewMessageType.SET_PATH_SEPARATOR ||
+    msg.kind === HostToWebviewMessageType.SET_SECRET_VALUE
   );
 }
 
@@ -160,5 +163,13 @@ export type SetPathSeparatorMsg = AnyHostToWebviewMessage<
   HostToWebviewMessageType.SET_PATH_SEPARATOR,
   {
     separator: string;
+  }
+>;
+
+export type SetSecretValueMsg = AnyHostToWebviewMessage<
+  HostToWebviewMessageType.SET_SECRET_VALUE,
+  {
+    name: string;
+    value: string;
   }
 >;

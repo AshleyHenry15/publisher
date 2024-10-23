@@ -14,6 +14,7 @@ import {
   UpdateRPackages,
   RefreshFilesMsg,
   SetPathSeparatorMsg,
+  SetSecretValueMsg,
 } from "../../../src/types/messages/hostToWebviewMessages";
 import {
   WebviewToHostMessage,
@@ -86,6 +87,8 @@ const onMessageFromHost = (msg: HostToWebviewMessage): void => {
       return onHideDisableOverlayMsg();
     case HostToWebviewMessageType.SET_PATH_SEPARATOR:
       return onSetPathSeparatorMsg(msg);
+    case HostToWebviewMessageType.SET_SECRET_VALUE:
+      return onSetSecretValueMsg(msg);
     default:
       console.warn(`unexpected command: ${JSON.stringify(msg)}`);
   }
@@ -93,6 +96,10 @@ const onMessageFromHost = (msg: HostToWebviewMessage): void => {
 
 const onSetPathSeparatorMsg = (msg: SetPathSeparatorMsg) => {
   useHomeStore().platformFileSeparator = msg.content.separator;
+};
+
+const onSetSecretValueMsg = (msg: SetSecretValueMsg) => {
+  useHomeStore().secrets.set(msg.content.name, msg.content.value);
 };
 
 const onInitializingRequestCompleteMsg = () => {
