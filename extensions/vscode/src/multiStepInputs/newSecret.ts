@@ -1,4 +1,4 @@
-import { window } from "vscode";
+import { QuickInputButton, ThemeIcon, window } from "vscode";
 
 import { Configuration, useApi } from "src/api";
 import {
@@ -78,18 +78,31 @@ export async function newSecret(
     const currentValue =
       typeof state.data.value === "string" ? state.data.value : "";
 
+    class SkipButton implements QuickInputButton {
+      iconPath: ThemeIcon = new ThemeIcon("debug-step-over");
+      tooltip: string = "Skip setting a value";
+    }
+
+    const skipButton = new SkipButton();
+
     const value = await input.showInputBox({
       title: state.title,
       step: step,
       totalSteps: state.totalSteps,
       value: currentValue,
       prompt: "Enter the value of the secret",
+      buttons: [skipButton],
       password: true,
       shouldResume: () => Promise.resolve(false),
       ignoreFocusOut: true,
     });
 
-    state.data.value = value;
+    if (value instanceof SkipButton) {
+      state.data.value = "";
+    } else {
+      state.data.value = value;
+    }
+
     state.lastStep = step;
   }
 
